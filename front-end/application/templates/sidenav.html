@@ -69,52 +69,31 @@
     <ul class="menu-inner py-1">
         <!-- Dashboard -->
 <!--   will make it logic "active"-->
-        {% for row in sections %}
-            {% if row[1] > 1 %}
+        {% for key, value in sections.items() %}
+            {% if value|length > 1 %}
                 <li class="menu-item">
                     <a href="javascript:void(0);" class="menu-link menu-toggle">
-                        <i class="menu-icon tf-icons bx bx-layout"></i>
-                        <div data-i18n="Layouts">{{ row[0] }}</div>
+                        <i class="menu-icon tf-icons {{ value[0].image }}"></i>
+                        <div data-i18n="Layouts">{{ key }}</div>
                     </a>
-
-                    <ul class="menu-sub">
-                        <li class="menu-item">
-                            <a href="layouts-without-menu.html" class="menu-link">
-                                <div data-i18n="Without menu">Without menu</div>
-                            </a>
-                        </li>
-                        <li class="menu-item">
-                            <a href="layouts-without-navbar.html" class="menu-link">
-                                <div data-i18n="Without navbar">Without navbar</div>
-                            </a>
-                        </li>
-                        <li class="menu-item">
-                            <a href="layouts-container.html" class="menu-link">
-                                <div data-i18n="Container">Container</div>
-                            </a>
-                        </li>
-                        <li class="menu-item">
-                            <a href="layouts-fluid.html" class="menu-link">
-                                <div data-i18n="Fluid">Fluid</div>
-                            </a>
-                        </li>
-                        <li class="menu-item">
-                            <a href="layouts-blank.html" class="menu-link">
-                                <div data-i18n="Blank">Blank</div>
-                            </a>
-                        </li>
-                    </ul>
+                    {% for row in value %}
+                        <ul class="menu-sub">
+                            <li class="menu-item">
+                                <a href="layouts-without-menu.html" class="menu-link">
+                                    <div data-i18n="Without menu">{{ row.sub_section_name }}</div>
+                                </a>
+                            </li>
+                        </ul>
+                    {% endfor %}
                 </li>
             {% else %}
                 <li class="menu-item">
                     <a href="index.html" class="menu-link">
-                        <i class="menu-icon tf-icons bx bx-home-circle"></i>
-                        <div data-i18n="Analytics">{{ row[0] }}</div>
+                        <i class="menu-icon tf-icons bx {{ value[0].image }}"></i>
+                        <div data-i18n="Analytics">{{ value[0].sub_section_name }}</div>
                     </a>
                 </li>
             {% endif %}
         {% endfor %}
-        <!-- Layouts -->
-
     </ul>
 </aside>
