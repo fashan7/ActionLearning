@@ -226,9 +226,9 @@ def getall_pages():
     return response
 
 
-@perm_api_blueprint.route('/api/get-section-postion', methods=['GET'])
-def get_pages_sections():
-    user_id = 3  # TODO hardcode infuture will implement to make dynamic after the login page implemented
+@perm_api_blueprint.route('/api/get-section-postion/<user_id>', methods=['GET'])
+def get_pages_sections(user_id):
+    # TODO hardcode infuture will implement to make dynamic after the login page implemented
     raw_query = f"SELECT DISTINCT pageallocation.psection, pageallocation.pposition AS pageallocation_pposition, (SELECT count(p.id) FROM pageallocation p where p.psection = pageallocation.psection) AS countP FROM pageallocation JOIN userpriviledge ON pageallocation.id = userpriviledge.pageallocation_id WHERE pageallocation.status IS true AND userpriviledge.status IS true AND userpriviledge.user_id = {user_id} ORDER BY pageallocation.psection"
     items = db.session.execute(raw_query)
 
@@ -242,6 +242,25 @@ def get_pages_sections():
         response = jsonify(data), 200
     else:
         response = jsonify({'message': 'Not Pages to Find'}), 404
+    return response
+
+
+@perm_api_blueprint.route('/api/get-subsection/<user_id>/<section_id>')
+def get_subsection(user_id, section_id):
+    item = Userpriviledge.query.join(Pageallocation, Pageallocation.id == Userpriviledge.pageallocation_id).join(User,
+                                                                                                                 User.id == Userpriviledge.user_id).filter(
+        Pageallocation.psection == section_id, Pageallocation.status.is_(True),
+        Userpriviledge.user_id == user_id).order_by(Pageallocation.sposition).with_entities(Pageallocation.name,
+                                                                                            Userpriviledge.status,
+                                                                                            Userpriviledge.id,
+                                                                                            Pageallocation.image)
+    if item is not None:
+        data = list()
+        for row in item:
+            data.append({'sub_section_name': row[0], 'status': row[1], 'user_priv_id': row[2], 'image': row[3]})
+        response = jsonify(data), 200
+    else:
+        response = jsonify({'message': 'Not Sub Section to Find'}), 404
     return response
 
 

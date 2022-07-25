@@ -13,8 +13,13 @@ def load_user(user_id):
 
 @frontend_blueprint.route('/', methods=['GET'])
 def home():
-    response_section = PrivilegeClient.group_sections()
-    sections = list()
+    user_id = 3
+    response_section = PrivilegeClient.group_sections(user_id)
+    nav_bar = dict()
     for data in response_section:
-        sections.append(list(data.values()))
-    return render_template('dashboard/index.html', sections=sections)
+        temp = list(data.values())
+        response_sub_section = PrivilegeClient.get_sub_sections(user_id, temp[0])
+        nav_bar.update({temp[0]:response_sub_section})
+
+
+    return render_template('dashboard/index.html', sections=nav_bar)
