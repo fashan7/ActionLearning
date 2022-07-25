@@ -4,7 +4,6 @@ from . import frontend_blueprint
 from .api.PriviledgeClient import PrivilegeClient
 from .api.UserClient import UserClient
 from .. import login_manager
-import json
 
 from flask import render_template, session, redirect, url_for, flash, request, jsonify
 from flask_login import current_user
@@ -18,7 +17,9 @@ def load_user(user_id):
 
 @frontend_blueprint.route('/', methods=['GET'])
 def home():
-    user_id = 3
+    if not session.get('user'):
+        return redirect(url_for('frontend.login'))
+    user_id = session['user'].get('id')
     response_section = PrivilegeClient.group_sections(user_id)
     nav_bar = dict()
     for data in response_section:
@@ -51,3 +52,7 @@ def login():
 def logout():
     session.clear()
     return redirect(url_for('frontend.login'))
+
+
+
+

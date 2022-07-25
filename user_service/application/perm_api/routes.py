@@ -33,16 +33,6 @@ def load_user_from_request(request):
     return None
 
 
-@perm_api_blueprint.route('/api/test/<id>', methods=['GET'])
-def test(id):
-    item = User.query.filter_by(id=id).first()
-    if item is not None:
-        response = jsonify(item.to_json())
-    else:
-        response = jsonify({'message': 'Cannot find user'}), 404
-    return response
-
-
 @perm_api_blueprint.route('/api/users', methods=['GET'])
 def get_users():
     data = []
