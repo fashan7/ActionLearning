@@ -10,7 +10,6 @@ from passlib.hash import sha256_crypt
 use to reload the user object from the userid stored in session
 """
 
-
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.filter_by(id=user_id).first()
@@ -23,7 +22,6 @@ or an API key args as a query argument, in this cases we have to use
 request_loader
 """
 
-
 @login_manager.request_loader
 def load_user_from_request(request):
     api_key = request.headers.get('Authorization')
@@ -33,6 +31,16 @@ def load_user_from_request(request):
         if user:
             return user
     return None
+
+
+@perm_api_blueprint.route('/api/test/<id>', methods=['GET'])
+def test(id):
+    item = User.query.filter_by(id=id).first()
+    if item is not None:
+        response = jsonify(item.to_json())
+    else:
+        response = jsonify({'message': 'Cannot find user'}), 404
+    return response
 
 
 @perm_api_blueprint.route('/api/users', methods=['GET'])
@@ -183,13 +191,12 @@ def usertype_create():
 
 @perm_api_blueprint.route('/api/user-role/<id>', methods=['GET'])
 def usertype_get(id):
-    item = Roles.query.filter_by(id=id).all()
+    item = Roles.query.filter_by(id=id).first()
     if item is not None:
         response = jsonify(item.to_json())
     else:
         response = jsonify({'message': 'Cannot find a role'}), 404
     return response
-
 
 @perm_api_blueprint.route('/api/page-alloc/create', methods=['POST'])
 def page_allocate_create():
