@@ -1,5 +1,6 @@
 from . import db
-import datetime
+import datetime as dt
+from datetime import datetime
 from flask_login import UserMixin
 from passlib.hash import sha256_crypt
 
@@ -30,7 +31,7 @@ class User(UserMixin, db.Model):
     is_admin = db.Column(db.Boolean, default=False)
     authenticated = db.Column(db.Boolean, default=False)
     api_key = db.Column(db.String(255), unique=True, nullable=True)
-    date_reg = db.Column(db.DateTime, default=datetime.datetime.utcnow, nullable=False)
+    date_reg = db.Column(db.DateTime, default=dt.datetime.utcnow, nullable=False)
     address_id = db.Column(db.Integer, db.ForeignKey('useraddress.id'), nullable=False)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), nullable=False)
     branch_id = db.Column(db.Integer, db.ForeignKey('branch.id'), nullable=False)
