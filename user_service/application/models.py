@@ -203,10 +203,10 @@ class Staff(UserMixin, db.Model):
     full_name = db.Column(db.String(255), unique=False, nullable=True)
     address = db.Column(db.String(255), unique=False, nullable=True)
     gender = db.Column(db.String(255), unique=False, nullable=True)
-    date_of_birth = db.Column(db.DateTime, default=datetime.datetime.utcnow, nullable=False)
+    date_of_birth = db.Column(db.DateTime, default=dt.datetime.utcnow, nullable=False)
     mobile = db.Column(db.String(255), unique=False, nullable=True)
     email = db.Column(db.String(255), unique=False, nullable=True)
-    joining_date = db.Column(db.DateTime, default=datetime.datetime.utcnow, nullable=False)
+    joining_date = db.Column(db.DateTime, default=dt.datetime.utcnow, nullable=False)
     is_active = db.Column(db.Boolean, default=True)
 
     def __repr__(self):
