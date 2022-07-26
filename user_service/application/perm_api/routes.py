@@ -10,6 +10,7 @@ from passlib.hash import sha256_crypt
 use to reload the user object from the userid stored in session
 """
 
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.filter_by(id=user_id).first()
@@ -21,6 +22,7 @@ such as using header values
 or an API key args as a query argument, in this cases we have to use 
 request_loader
 """
+
 
 @login_manager.request_loader
 def load_user_from_request(request):
@@ -41,11 +43,10 @@ def get_users():
     response = jsonify(data)
     return response
 
-#put User
 
+# put User
 
-
-
+@perm_api_blueprint.route('/test/<userid>', methods=['GET'])
 def set_privilege(userid):
     pages = Pageallocation.query.all()
 
@@ -58,9 +59,12 @@ def set_privilege(userid):
         item.pageallocation_id = page_id
         db.session.add(item)
         db.session.commit()
-#put  Userpriviledge
+    return {'s':'2'}
 
-    # No returns since this method is called within a function
+
+# put  Userpriviledge
+
+# No returns since this method is called within a function
 
 
 @perm_api_blueprint.route('/api/user/create', methods=['POST'])
@@ -115,11 +119,8 @@ def user_register():
 
     # When User is created, Priviledges are set
     set_privilege(result.get('id'))
+    print("Fashanbackend", response)
     return response
-
-
-
-
 
 
 @perm_api_blueprint.route('/api/user/login', methods=['POST'])
@@ -196,6 +197,7 @@ def usertype_get(id):
         response = jsonify({'message': 'Cannot find a role'}), 404
     return response
 
+
 @perm_api_blueprint.route('/api/page-alloc/create', methods=['POST'])
 def page_allocate_create():
     route = request.form['route']
@@ -231,8 +233,6 @@ def getall_pages():
     return response
 
 
-
-
 @perm_api_blueprint.route('/api/get-section-postion/<user_id>', methods=['GET'])
 def get_pages_sections(user_id):
     # TODO hardcode infuture will implement to make dynamic after the login page implemented
@@ -260,11 +260,11 @@ def get_subsection(user_id, section_id):
         Userpriviledge.user_id == user_id).order_by(Pageallocation.sposition).with_entities(Pageallocation.name,
                                                                                             Userpriviledge.status,
                                                                                             Userpriviledge.id,
-                                                                                            Pageallocation.image)
+                                                                                            Pageallocation.image, Pageallocation.route)
     if item is not None:
         data = list()
         for row in item:
-            data.append({'sub_section_name': row[0], 'status': row[1], 'user_priv_id': row[2], 'image': row[3]})
+            data.append({'sub_section_name': row[0], 'status': row[1], 'user_priv_id': row[2], 'image': row[3], 'route': row[4]})
         response = jsonify(data), 200
     else:
         response = jsonify({'message': 'Not Sub Section to Find'}), 404
@@ -316,31 +316,29 @@ def branch_get(id):
         response = jsonify({'message': 'Cannot find branch'}), 404
     return response
 
+
 @perm_api_blueprint.route('/api/delete-branch/<id>', methods=['DELETE'])
 def branch_delete(id):
     item = Branch.query.filter_by(id=id).first()
     if item is not None:
         db.session.delete(item)
         db.session.commit()
-        #response= jsonify(item.to_delete)
-        response = jsonify({'message':'Successfully deleted'})
+        # response= jsonify(item.to_delete)
+        response = jsonify({'message': 'Successfully deleted'})
     else:
         response = jsonify({'message': 'Cannot find branch'}), 404
     return response
+
 
 @perm_api_blueprint.route('/api/update-branch/<id>', methods=['PUT'])
 def branch_put(id):
     item = Branch.query.filter_by(id=id).first()
     if item is not None:
         name = request.form['name']
-        #item = request.form['item']
         item.name = name
-       # item.item = item
-
 
         db.session.commit()
-        #response= jsonify(item.to_de)
-        response = jsonify({'message':'Successfully updated'})
+        response = jsonify({'message': 'Successfully updated'})
     else:
         response = jsonify({'message': 'Cannot find branch'}), 404
     return response
@@ -352,17 +350,17 @@ def usertype_delete(id):
     if item is not None:
         db.session.delete(item)
         db.session.commit()
-        # response= jsonify(item.to_delete)
         response = jsonify({'message': 'Successfully deleted'})
     else:
         response = jsonify({'message': 'Cannot find a role'}), 404
     return response
 
+
 @perm_api_blueprint.route('/api/user-role-update/<id>', methods=['PUT'])
 def usertype_update(id):
     item = Roles.query.filter_by(id=id).first()
     if item is not None:
-        name= request.form['name']
+        name = request.form['name']
         item.name = name
         db.session.commit()
         response = jsonify({'message': 'Successfully updated'})

@@ -15,19 +15,25 @@ def load_user(user_id):
     return item.get('result')
 
 
-@frontend_blueprint.route('/', methods=['GET'])
-def home():
-    if not session.get('user'):
-        return redirect(url_for('frontend.login'))
-    user_id = session['user'].get('id')
+def navigation_data(user_id):
     response_section = PrivilegeClient.group_sections(user_id)
     nav_bar = dict()
     for data in response_section:
         temp = list(data.values())
         response_sub_section = PrivilegeClient.get_sub_sections(user_id, temp[0])
         nav_bar.update({temp[0]: response_sub_section})
+    return nav_bar
 
-    return render_template('dashboard/index.html', sections=nav_bar)
+
+@frontend_blueprint.route('/dashboard', methods=['GET'])
+def home():
+    if not session.get('user'):
+        return redirect(url_for('frontend.login'))
+    user_id = session['user'].get('id')
+    nav_data = navigation_data(user_id)
+
+    return render_template('dashboard/index.html', sections=nav_data)
+
 
 @frontend_blueprint.route('/login', methods=['GET', 'POST'])
 def login():
@@ -42,9 +48,9 @@ def login():
             user = UserClient.get_user()
             session['user'] = user['result']
             flash('Welcome back, ' + user['result']['username'], 'success')
-            return jsonify({'status':200})
+            return jsonify({'status': 200})
         else:
-            return jsonify({'status':401})
+            return jsonify({'status': 401})
     return render_template('login/index.html')
 
 
@@ -54,5 +60,22 @@ def logout():
     return redirect(url_for('frontend.login'))
 
 
+@frontend_blueprint.route('/user-reg', methods=['GET', 'POST'])
+def user_register():
+    if not session.get('user'):
+        return redirect(url_for('frontend.login'))
+    user_id = session['user'].get('id')
+    nav_data = navigation_data(user_id)
+
+    branches = UserClient.get_branches()
+    roles = UserClient.get_roles()
+
+    form = forms.UserForm()
+    if request.method == "POST":
+        response_result = UserClient.post_user_reg(form)
+        print(response_result)
 
 
+
+
+    return render_template('user/register.html', sections=nav_data, branches=branches, roles=roles)
