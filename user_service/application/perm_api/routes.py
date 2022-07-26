@@ -1,6 +1,6 @@
 from . import perm_api_blueprint
 from .. import db, login_manager
-from ..models import Roles, User, Pageallocation, Userpriviledge, Branch, Useraddress
+from ..models import Roles, User, Pageallocation, Userpriviledge, Branch, Useraddress, Staffstructure,Staff
 from flask import make_response, request, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
 
@@ -223,6 +223,43 @@ def page_allocate_create():
     return response
 
 
+@perm_api_blueprint.route('/api/staff/structure', methods=['POST'])
+def staff_structure():
+    name = request.form['name']
+
+    item = Staffstructure()
+    item.name = name
+
+    db.session.add(item)
+    db.session.commit()
+    response = jsonify({'message': 'saved successfully'}), 200
+    return response
+
+# @perm_api_blueprint.route('/api/user-role/<id>', methods=['GET'])
+# def usertype_get(id):
+#     item = Roles.query.filter_by(id=id).all()
+
+@perm_api_blueprint.route('/api/get-staff/<id>', methods=['GET'])
+def staff_get_id(id):
+    item = Staffstructure.query.filter_by(id=id).first()
+    # .query.filter_by(id=id).all()
+    if item is not None:
+        print(item.to_json)
+        response = jsonify(item.to_json())
+    else:
+        response = jsonify({'message': 'Cannot find any staff'}), 404
+    return response
+
+@perm_api_blueprint.route('/api/staff', methods=['GET'])
+def staff_get():
+    data = []
+    for row in Staffstructure.query.all():
+        data.append(row.to_json())
+
+    response = jsonify(data)
+    return response
+
+
 @perm_api_blueprint.route('/api/pages', methods=['GET'])
 def getall_pages():
     items = list()
@@ -316,7 +353,6 @@ def branch_get(id):
         response = jsonify({'message': 'Cannot find branch'}), 404
     return response
 
-
 @perm_api_blueprint.route('/api/delete-branch/<id>', methods=['DELETE'])
 def branch_delete(id):
     item = Branch.query.filter_by(id=id).first()
@@ -364,6 +400,80 @@ def usertype_update(id):
         item.name = name
         db.session.commit()
         response = jsonify({'message': 'Successfully updated'})
+    else:
+        response = jsonify({'message': 'Cannot find branch'}), 404
+    return response
+
+@perm_api_blueprint.route('/api/staff/registration', methods=['POST'])
+def staff_registration():
+    code = request.form['code']
+    full_name = request.form['full_name']
+    address = request.form['address']
+    gender = request.form['gender']
+    date_of_birth = request.form['date_of_birth']
+    mobile = request.form['mobile']
+    email = request.form['email']
+    joining_date = request.form['joining_date']
+
+
+    item = Staff()
+    item.full_name = full_name
+    item.code = code
+    item.address = address
+    item.gender = gender
+    item.date_of_birth = date_of_birth
+    item.mobile = mobile
+    item.email = email
+    item.joining_date = joining_date
+
+
+    db.session.add(item)
+    db.session.commit()
+
+    response = jsonify({'added': item.to_json()})
+    return response
+
+@perm_api_blueprint.route('/api/staff/get-staff', methods=['GET'])
+def getall_staff():
+    items = list()
+    for row in Staff.query.all():
+        items.append(row.to_json())
+
+    response = jsonify({'results': items})
+    return response
+
+@perm_api_blueprint.route('/api/staff/get-staff/<id>', methods=['GET'])
+def staff_get_id2(id):
+    item = Staff.query.filter_by(id=id).first()
+    # .query.filter_by(id=id).all()
+    if item is not None:
+        print(item.to_json)
+        response = jsonify(item.to_json())
+    else:
+        response = jsonify({'message': 'Cannot find any staff'}), 404
+    return response
+
+@perm_api_blueprint.route('/api/staff/update-staff/<id>', methods=['PUT'])
+def staff_put_id(id):
+    item = Staff.query.filter_by(id=id).first()
+    # .query.filter_by(id=id).all()
+    if item is not None:
+        item.full_name = request.form['full_name']
+        db.session.add(item)
+        db.session.commit()
+        response = jsonify({'message': 'staff updated'})
+    else:
+        response = jsonify({'message': 'Cannot find any staff'}), 404
+    return response
+
+@perm_api_blueprint.route('/api/staff/delete-staff/<id>', methods=['DELETE'])
+def staff_delete(id):
+    item = Staff.query.filter_by(id=id).first()
+    if item is not None:
+        db.session.delete(item)
+        db.session.commit()
+        #response= jsonify(item.to_delete)
+        response = jsonify({'message':'Successfully deleted'})
     else:
         response = jsonify({'message': 'Cannot find branch'}), 404
     return response
