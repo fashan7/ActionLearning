@@ -77,6 +77,7 @@ def user_register():
 
     return render_template('user/register.html', sections=nav_data, branches=branches, roles=roles)
 
+
 @frontend_blueprint.route('/branch-create', methods=['GET', 'POST'])
 def branch_register():
     if not session.get('user'):
@@ -88,11 +89,11 @@ def branch_register():
     if request.method == "POST":
         response = UserClient.post_branch_reg(form)
         return jsonify({'status': response.status_code})
-        
-     return render_template('user/branch.html', sections=nav_data)
+
+    return render_template('user/branch.html', sections=nav_data)
 
 
-@frontend_blueprint.route('/user-roles', methods=['GET','POST'])
+@frontend_blueprint.route('/user-roles', methods=['GET', 'POST'])
 def user_roles():
     if not session.get('user'):
         return redirect(url_for('frontend.login'))
