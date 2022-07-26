@@ -127,6 +127,21 @@ class Pageallocation(db.Model):
         }
 
 
+class Staffstructure(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(100), unique=False, nullable=False)
+    status = db.Column(db.Boolean, default=True)
+
+    def __repr__(self):
+        return '<id {}>'.format(self.id)
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'name': self.name
+        }
+
+
 class Userpriviledge(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     status = db.Column(db.Boolean, default=True)
@@ -141,4 +156,30 @@ class Userpriviledge(db.Model):
             'id': self.id,
             'user_id': self.user_id,
             'page_id': self.pageallocation_id
+        }
+
+class Staff(UserMixin, db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    code = db.Column(db.String(255), unique=True, nullable=False)
+    full_name = db.Column(db.String(255), unique=False, nullable=True)
+    address = db.Column(db.String(255), unique=False, nullable=True)
+    gender = db.Column(db.String(255), unique=False, nullable=True)
+    date_of_birth = db.Column(db.DateTime, default=datetime.datetime.utcnow, nullable=False)
+    mobile = db.Column(db.String(255), unique=False, nullable=True)
+    email = db.Column(db.String(255), unique=False, nullable=True)
+    joining_date = db.Column(db.DateTime, default=datetime.datetime.utcnow, nullable=False)
+    is_active = db.Column(db.Boolean, default=True)
+
+    def __repr__(self):
+        return '<id %r>' % (self.id)
+
+    def to_json(self):
+        return {
+            'full_name': self.full_name,
+            'email': self.email,
+            'id': self.id,
+            'is_active': True,
+
         }
