@@ -1,6 +1,6 @@
 from . import perm_api_blueprint
 from .. import db, login_manager
-from ..models import Roles, User, Pageallocation, Userpriviledge, Branch, Useraddress
+from ..models import Roles, User, Pageallocation, Userpriviledge, Branch, Useraddress, Course, Subjects
 from flask import make_response, request, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
 
@@ -9,6 +9,7 @@ from passlib.hash import sha256_crypt
 """
 use to reload the user object from the userid stored in session
 """
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -21,6 +22,11 @@ such as using header values
 or an API key args as a query argument, in this cases we have to use 
 request_loader
 """
+
+@perm_api_blueprint.route('/', methods=['GET'])
+def workttest():
+    return jsonify({'work':'hurray'})
+
 
 @login_manager.request_loader
 def load_user_from_request(request):
@@ -42,7 +48,66 @@ def get_users():
     return response
 
 #put User
+@perm_api_blueprint.route('/api/users/update/<id>', methods=['PUT'])
+def update_users(id):
+    item = User.query.filter_by(id=id).first()
+    if item is not None:
+       # id = request.form['id']
+       # username = request.form['username']
+        email = request.form['email']
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
+        address1 = request.form['address1']
+        address2 = request.form['address2']
+        address3 = request.form['address3']
+        city = request.form['city']
+        country = request.form['country']
+        postal_code = request.form['postal_code']
 
+        # password=request.form['password']
+
+        #item.id = id
+       # item.username = username
+        item.email = email
+        item.first_name = first_name
+        item.last_name = last_name
+        item.address1 = address1
+        item.address2 = address2
+        item.address3 = address3
+        item.city = city
+        item.country= country
+        item.postal_code = postal_code
+
+
+        # user.password = password
+        db.session.commit()
+        response = jsonify({'message': 'Successfully updated'})
+    else:
+        response = jsonify({'message': 'Cannot find branch'}), 404
+    return response
+
+
+    '''
+    user = User.query.filter_by(id=id).first()
+    id = request.form['id']
+    username= request.form['username']
+    email= request.form['email']
+    first_name=request.form['first_name']
+    last_name=request.form['last_name']
+    #password=request.form['password']
+
+    user.id = id
+    user.username= username
+    user.email = email
+    user.first_name = first_name
+    user.last_name = last_name
+    #user.password = password
+
+    db.session.commit()
+    response = jsonify({'message': 'Successfully updated'})
+    return response
+
+'''
 
 
 
@@ -59,6 +124,36 @@ def set_privilege(userid):
         db.session.add(item)
         db.session.commit()
 #put  Userpriviledge
+@perm_api_blueprint.route('/api/set-priv/<user_id>', methods=['GET'])
+def user_privilege(user_id):
+
+
+   # items = Pageallocation.query.join(Userpriviledge).filter(Pageallocation.status.is_(True),
+
+                                                                 # Userpriviledge.status.is_(True),
+                                                                  #Userpriviledge.user_id == 3).order_by(Pageallocation.psection).with_entities(Pageallocation.psection.distinct(), Pageallocation.pposition)
+
+    item = Userpriviledge.query.join(Pageallocation, Pageallocation.id == Userpriviledge.pageallocation_id).join(User, User.id == Userpriviledge.user_id).filter(Userpriviledge.user_id==user_id).with_entities(Userpriviledge.status, User.username, Pageallocation.name).all()
+    print("Fashan",item)
+    # if item is not None:
+    #     #id = request.form['id']
+    #     status= request.form['status']
+    #     #pageallocation_id = request.form['pageallocation_id']
+    #
+    #     #item.id = id
+    #     item.status = status
+    #    # item.pageallocation_id= pageallocation_id
+    #
+    #     db.session.commit()
+    #     response = jsonify({'message': 'Successfully updated'})
+    # else:
+    #     response = jsonify({'message': 'Cannot find '}), 404
+    # return response
+    return {'ms':23}
+
+
+
+
 
     # No returns since this method is called within a function
 
@@ -195,6 +290,31 @@ def usertype_get(id):
     else:
         response = jsonify({'message': 'Cannot find a role'}), 404
     return response
+
+@perm_api_blueprint.route('/api/user-role-delete/<id>', methods=['DELETE'])
+def usertype_delete(id):
+    item = Roles.query.filter_by(id=id).first()
+    if item is not None:
+        db.session.delete(item)
+        db.session.commit()
+        # response= jsonify(item.to_delete)
+        response = jsonify({'message': 'Successfully deleted'})
+    else:
+        response = jsonify({'message': 'Cannot find a role'}), 404
+    return response
+
+@perm_api_blueprint.route('/api/user-role-update/<id>', methods=['PUT'])
+def usertype_update(id):
+    item = Roles.query.filter_by(id=id).first()
+    if item is not None:
+        name= request.form['name']
+        item.name = name
+        db.session.commit()
+        response = jsonify({'message': 'Successfully updated'})
+    else:
+        response = jsonify({'message': 'Cannot find role'}), 404
+    return response
+
 
 @perm_api_blueprint.route('/api/page-alloc/create', methods=['POST'])
 def page_allocate_create():
@@ -336,8 +456,6 @@ def branch_put(id):
         #item = request.form['item']
         item.name = name
        # item.item = item
-
-
         db.session.commit()
         #response= jsonify(item.to_de)
         response = jsonify({'message':'Successfully updated'})
@@ -345,27 +463,139 @@ def branch_put(id):
         response = jsonify({'message': 'Cannot find branch'}), 404
     return response
 
+#Course
+@perm_api_blueprint.route('/api/course/create', methods=['POST'])
+def course_create():
+    course_name = request.form['course_name']
+    course_semester = request.form['course_semester']
+   # status = request.form['status']
+   # id = request.form['id']
+    item = Course()
+    item.course_name = course_name
+    item.course_semester = course_semester
+   # item.status = status
+    #item.id = id
 
-@perm_api_blueprint.route('/api/user-role-delete/<id>', methods=['DELETE'])
-def usertype_delete(id):
-    item = Roles.query.filter_by(id=id).first()
+    db.session.add(item)
+    db.session.commit()
+
+    response = jsonify({'message': 'course added', 'course': item.to_json()})
+    return response
+
+@perm_api_blueprint.route('/api/course/update/<id>', methods=['PUT'])
+def course_update(id):
+    item = Course.query.filter_by(id=id).first()
+    if item is not None:
+        course_name = request.form['course_name']
+        course_semester = request.form['course_semester']
+
+        item.course_name = course_name
+        item.course_semester= course_semester
+
+        db.session.commit()
+        # response= jsonify(item.to_de)
+        response = jsonify({'message': 'Successfully updated'})
+    else:
+        response = jsonify({'message': 'Cannot find course'}), 404
+    return response
+
+#get
+@perm_api_blueprint.route('/api/course/get/<id>', methods=['GET'])
+def course_get(id):
+    item = Course.query.filter_by(id=id).first()
+    if item is not None:
+        response = jsonify(item.to_json())
+    else:
+        response = jsonify({'message': 'Cannot find course'}), 404
+    return response
+
+#getall
+@perm_api_blueprint.route('/api/course/getall', methods=['GET'])
+def getall_course():
+    items = list()
+    for row in Course.query.all():
+        items.append(row.to_json())
+
+    response = jsonify({'results': items})
+    return response
+
+#Delete
+@perm_api_blueprint.route('/api/course/delete/<id>', methods=['Delete'])
+def delete_course(id):
+    item = Course.query.filter_by(id=id).first()
     if item is not None:
         db.session.delete(item)
         db.session.commit()
         # response= jsonify(item.to_delete)
         response = jsonify({'message': 'Successfully deleted'})
     else:
-        response = jsonify({'message': 'Cannot find a role'}), 404
+        response = jsonify({'message': 'Cannot find course'}), 404
     return response
 
-@perm_api_blueprint.route('/api/user-role-update/<id>', methods=['PUT'])
-def usertype_update(id):
-    item = Roles.query.filter_by(id=id).first()
+#subjects
+@perm_api_blueprint.route('/api/create/subj', methods=['Post'])
+def subject_create():
+    name = request.form['name']
+    course_id = request.form['course_id']
+    # status = request.form['status']
+    # id = request.form['id']
+    item = Subjects()
+    item.name = name
+    item.course_id= course_id
+    # item.status = status
+    # item.id = id
+
+    db.session.add(item)
+    db.session.commit()
+
+    response = jsonify({'message': 'subject added', 'subject': item.to_json()})
+    return response
+
+
+@perm_api_blueprint.route('/api/update/<id>', methods=['PUT'])
+def sub_update(id):
+    item = Subjects.query.filter_by(id=id).first()
     if item is not None:
-        name= request.form['name']
+        name = request.form['name']
+        course_id = request.form['course_id']
+
         item.name = name
+        item.course_id= course_id
+
         db.session.commit()
+        # response= jsonify(item.to_de)
         response = jsonify({'message': 'Successfully updated'})
     else:
-        response = jsonify({'message': 'Cannot find branch'}), 404
+        response = jsonify({'message': 'Cannot find subject'}), 404
     return response
+
+@perm_api_blueprint.route('/api/get/<id>', methods=['GET'])
+def subject_get(id):
+    item = Subjects.query.filter_by(id=id).first()
+    if item is not None:
+        response = jsonify(item.to_json())
+    else:
+        response = jsonify({'message': 'Cannot find subject'}), 404
+    return response
+
+@perm_api_blueprint.route('/api/getall', methods=['GET'])
+def subject_all():
+    items = list()
+    for row in Subjects.query.all():
+        items.append(row.to_json())
+
+    response = jsonify({'results': items})
+    return response
+
+@perm_api_blueprint.route('/api/sub/delete/<id>', methods=['DELETE'])
+def subject_delete():
+    item = Subjects.query.filter_by(id=id).first()
+    if item is not None:
+        db.session.delete(item)
+        db.session.commit()
+        # response= jsonify(item.to_delete)
+        response = jsonify({'message': 'Successfully deleted'})
+    else:
+        response = jsonify({'message': 'Cannot find subject'}), 404
+    return response
+
