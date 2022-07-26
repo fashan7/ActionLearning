@@ -27,3 +27,7 @@ class UserForm(FlaskForm):
 class BranchForm(FlaskForm):
     bname = StringField('bname', validators=[DataRequired()])
     submit = SubmitField('submitReg')
+
+class RolesForm(FlaskForm):
+    rolename = StringField('rolename', validators=[DataRequired()])
+    submit = SubmitField('submitReg')

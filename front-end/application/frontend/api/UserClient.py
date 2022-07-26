@@ -63,7 +63,7 @@ class UserClient:
         response = requests.request("POST", url=url, data=payload)
 
         return response
-
+        
     @staticmethod
     def post_branch_reg(form):
         pay_load = {
@@ -71,4 +71,15 @@ class UserClient:
         }
         url = 'http://127.0.0.1:5002/api/branch/create'
         response = requests.request('POST', url=url, data=pay_load)
+        return response
+        
+    @staticmethod
+    def roles(form):
+        payload = {
+            'name': form.rolename.data
+        }
+
+        url = ' http://127.0.0.1:5002/api/user-roles/create'
+        response = requests.request("POST", url=url, data=payload)
+
         return response
