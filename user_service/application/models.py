@@ -143,3 +143,39 @@ class Userpriviledge(db.Model):
             'user_id': self.user_id,
             'page_id': self.pageallocation_id
         }
+
+class Course(db.Model):
+    course_name = db.Column(db.String(100),unique=False, nullable=False)
+    course_semester = db.Column(db.String(100),unique=False, nullable=False)
+    status = db.Column(db.Boolean,default=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    subfk = db.relationship('Subjects', uselist=False, backref="Course")
+    def __repr__(self):
+        return '<status {}>'.format(self.status)
+
+    def to_json(self):
+        return{
+            'course_name':self.course_name,
+            'course_semester':self.course_semester,
+            'status':self.status,
+            'id':self.id
+        }
+
+class Subjects(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
+    name = db.Column(db.String(100), unique=False, nullable=False)
+    status = db.Column(db.Boolean, default=True)
+
+
+    def __repr__(self):
+        return '<id {}>'.format(self.id)
+
+    def to_json(self):
+        return{
+
+            'id': self.id,
+            'course_id': self.course_id,
+            'name': self.name,
+            'status': self.status
+        }
