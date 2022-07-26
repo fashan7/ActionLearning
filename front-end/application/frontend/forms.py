@@ -1,9 +1,25 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, HiddenField, IntegerField
-
 from wtforms.validators import DataRequired, Email
 
-class LoginForm(FlaskForm):
-    # username = StringField('Username', validators=[DataRequired])
-    pass
 
+class LoginForm(FlaskForm):
+    username = StringField('username', validators=[DataRequired()])
+    password = PasswordField('password', validators=[DataRequired()])
+    submit = SubmitField('login')
+
+class UserForm(FlaskForm):
+    firstname = StringField('firstname', validators=[DataRequired()])
+    lastname = StringField('lastname', validators=[DataRequired()])
+    email = StringField('email', validators=[DataRequired()])
+    username = StringField('username', validators=[DataRequired()])
+    password = StringField('password', validators=[DataRequired()])
+    roles = StringField('roles', validators=[DataRequired()])
+    branch = StringField('branch', validators=[DataRequired()])
+    address1 = StringField('address1', validators=[DataRequired()])
+    address2 = StringField('address2', validators=[DataRequired()])
+    address3 = StringField('address3', validators=[DataRequired()])
+    postalcode = StringField('postalcode', validators=[DataRequired()])
+    city = StringField('city', validators=[DataRequired()])
+    country = StringField('country', validators=[DataRequired()])
+    submit = SubmitField('submitReg')

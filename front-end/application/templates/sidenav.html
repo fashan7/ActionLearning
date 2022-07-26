@@ -79,7 +79,8 @@
                     {% for row in value %}
                         <ul class="menu-sub">
                             <li class="menu-item">
-                                <a href="layouts-without-menu.html" class="menu-link">
+
+                                <a href="{{ row.route }}" class="menu-link">
                                     <div data-i18n="Without menu">{{ row.sub_section_name }}</div>
                                 </a>
                             </li>
@@ -88,7 +89,7 @@
                 </li>
             {% else %}
                 <li class="menu-item">
-                    <a href="index.html" class="menu-link">
+                    <a href="{{ value[0].route }}" class="menu-link">
                         <i class="menu-icon tf-icons bx {{ value[0].image }}"></i>
                         <div data-i18n="Analytics">{{ value[0].sub_section_name }}</div>
                     </a>

@@ -1,5 +1,6 @@
 from . import db
-import datetime
+import datetime as dt
+from datetime import datetime
 from flask_login import UserMixin
 from passlib.hash import sha256_crypt
 
@@ -24,13 +25,13 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(255), unique=True, nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
-    first_name = db.Column(db.String(255), unique=False, nullable=True)
-    last_name = db.Column(db.String(255), unique=False, nullable=True)
+    first_name = db.Column(db.String(255), unique=False, nullable=False)
+    last_name = db.Column(db.String(255), unique=False, nullable=False)
     password = db.Column(db.String(255), unique=False, nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
     authenticated = db.Column(db.Boolean, default=False)
     api_key = db.Column(db.String(255), unique=True, nullable=True)
-    date_reg = db.Column(db.DateTime, default=datetime.datetime.utcnow, nullable=False)
+    date_reg = db.Column(db.DateTime, default=dt.datetime.utcnow, nullable=False)
     address_id = db.Column(db.Integer, db.ForeignKey('useraddress.id'), nullable=False)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), nullable=False)
     branch_id = db.Column(db.Integer, db.ForeignKey('branch.id'), nullable=False)
@@ -156,6 +157,42 @@ class Userpriviledge(db.Model):
             'id': self.id,
             'user_id': self.user_id,
             'page_id': self.pageallocation_id
+        }
+
+class Course(db.Model):
+    course_name = db.Column(db.String(100),unique=False, nullable=False)
+    course_semester = db.Column(db.String(100),unique=False, nullable=False)
+    status = db.Column(db.Boolean,default=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    subfk = db.relationship('Subjects', uselist=False, backref="Course")
+    def __repr__(self):
+        return '<status {}>'.format(self.status)
+
+    def to_json(self):
+        return{
+            'course_name':self.course_name,
+            'course_semester':self.course_semester,
+            'status':self.status,
+            'id':self.id
+        }
+
+class Subjects(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
+    name = db.Column(db.String(100), unique=False, nullable=False)
+    status = db.Column(db.Boolean, default=True)
+
+
+    def __repr__(self):
+        return '<id {}>'.format(self.id)
+
+    def to_json(self):
+        return{
+
+            'id': self.id,
+            'course_id': self.course_id,
+            'name': self.name,
+            'status': self.status
         }
 
 class Staff(UserMixin, db.Model):
