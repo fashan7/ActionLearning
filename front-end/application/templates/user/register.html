@@ -451,7 +451,12 @@ $(document).ready(function (){
                 success: function (jsonData) {
                     console.log(jsonData)
                     if (jsonData.status == 200) {
-                        window.location = '/';
+                        Swal.fire({
+                          icon: 'success',
+                          title: 'Successfully registered',
+                        }).then((result) => {
+                            location.reload();
+                        });
                     } else {
                         Swal.fire({
                           icon: 'error',

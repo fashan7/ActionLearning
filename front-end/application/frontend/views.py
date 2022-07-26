@@ -73,9 +73,6 @@ def user_register():
     form = forms.UserForm()
     if request.method == "POST":
         response_result = UserClient.post_user_reg(form)
-        print(response_result)
-
-
-
+        return jsonify({'status': response_result.status_code})
 
     return render_template('user/register.html', sections=nav_data, branches=branches, roles=roles)
