@@ -79,3 +79,21 @@ def user_register():
 
 
     return render_template('user/register.html', sections=nav_data, branches=branches, roles=roles)
+
+@frontend_blueprint.route('/user-roles', methods=['GET','POST'])
+def user_roles():
+    if not session.get('user'):
+        return redirect(url_for('frontend.login'))
+
+    user_id = session['user'].get('id')
+    nav_data = navigation_data(user_id)
+
+    form = forms.RolesForm()
+    if request.method == "POST":
+        response_result = UserClient.roles(form)
+        return jsonify({'status': response_result.status_code})
+
+    return render_template('user/user-roles.html', sections=nav_data)
+
+
+

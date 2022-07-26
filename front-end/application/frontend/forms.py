@@ -23,3 +23,7 @@ class UserForm(FlaskForm):
     city = StringField('city', validators=[DataRequired()])
     country = StringField('country', validators=[DataRequired()])
     submit = SubmitField('submitReg')
+
+class RolesForm(FlaskForm):
+    rolename = StringField('rolename', validators=[DataRequired()])
+    submit = SubmitField('submitReg')
