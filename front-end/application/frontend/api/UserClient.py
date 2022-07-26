@@ -1,6 +1,7 @@
 import requests
 from flask import session, request
 
+
 class UserClient:
     @staticmethod
     def post_login(form):
@@ -43,7 +44,6 @@ class UserClient:
 
     @staticmethod
     def post_user_reg(form):
-        # "// firstname lastname email username password roles branch address1 address2 address3 postalcode city country"
         payload = {
             'first_name': form.firstname.data,
             'last_name': form.lastname.data,
@@ -63,7 +63,16 @@ class UserClient:
         response = requests.request("POST", url=url, data=payload)
 
         return response
-
+        
+    @staticmethod
+    def post_branch_reg(form):
+        pay_load = {
+            'name': form.bname.data
+        }
+        url = 'http://127.0.0.1:5002/api/branch/create'
+        response = requests.request('POST', url=url, data=pay_load)
+        return response
+        
     @staticmethod
     def roles(form):
         payload = {
@@ -74,5 +83,3 @@ class UserClient:
         response = requests.request("POST", url=url, data=payload)
 
         return response
-
-

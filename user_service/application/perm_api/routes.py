@@ -119,7 +119,6 @@ def user_register():
 
     # When User is created, Priviledges are set
     set_privilege(result.get('id'))
-    print("Fashanbackend", response)
     return response
 
 

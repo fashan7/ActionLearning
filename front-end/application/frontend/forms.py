@@ -24,6 +24,10 @@ class UserForm(FlaskForm):
     country = StringField('country', validators=[DataRequired()])
     submit = SubmitField('submitReg')
 
+class BranchForm(FlaskForm):
+    bname = StringField('bname', validators=[DataRequired()])
+    submit = SubmitField('submitReg')
+
 class RolesForm(FlaskForm):
     rolename = StringField('rolename', validators=[DataRequired()])
     submit = SubmitField('submitReg')
