@@ -10,7 +10,6 @@ from passlib.hash import sha256_crypt
 use to reload the user object from the userid stored in session
 """
 
-
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.filter_by(id=user_id).first()
@@ -22,11 +21,6 @@ such as using header values
 or an API key args as a query argument, in this cases we have to use 
 request_loader
 """
-
-@perm_api_blueprint.route('/', methods=['GET'])
-def workttest():
-    return jsonify({'work':'hurray'})
-
 
 @login_manager.request_loader
 def load_user_from_request(request):
@@ -202,31 +196,6 @@ def usertype_get(id):
         response = jsonify({'message': 'Cannot find a role'}), 404
     return response
 
-@perm_api_blueprint.route('/api/user-role-delete/<id>', methods=['DELETE'])
-def usertype_delete(id):
-    item = Roles.query.filter_by(id=id).first()
-    if item is not None:
-        db.session.delete(item)
-        db.session.commit()
-        # response= jsonify(item.to_delete)
-        response = jsonify({'message': 'Successfully deleted'})
-    else:
-        response = jsonify({'message': 'Cannot find a role'}), 404
-    return response
-
-@perm_api_blueprint.route('/api/user-role-update/<id>', methods=['PUT'])
-def usertype_update(id):
-    item = Roles.query.filter_by(id=id).first()
-    if item is not None:
-        name= request.form['name']
-        item.name = name
-        db.session.commit()
-        response = jsonify({'message': 'Successfully updated'})
-    else:
-        response = jsonify({'message': 'Cannot find branch'}), 404
-    return response
-
-
 @perm_api_blueprint.route('/api/page-alloc/create', methods=['POST'])
 def page_allocate_create():
     route = request.form['route']
@@ -376,3 +345,27 @@ def branch_put(id):
         response = jsonify({'message': 'Cannot find branch'}), 404
     return response
 
+
+@perm_api_blueprint.route('/api/user-role-delete/<id>', methods=['DELETE'])
+def usertype_delete(id):
+    item = Roles.query.filter_by(id=id).first()
+    if item is not None:
+        db.session.delete(item)
+        db.session.commit()
+        # response= jsonify(item.to_delete)
+        response = jsonify({'message': 'Successfully deleted'})
+    else:
+        response = jsonify({'message': 'Cannot find a role'}), 404
+    return response
+
+@perm_api_blueprint.route('/api/user-role-update/<id>', methods=['PUT'])
+def usertype_update(id):
+    item = Roles.query.filter_by(id=id).first()
+    if item is not None:
+        name= request.form['name']
+        item.name = name
+        db.session.commit()
+        response = jsonify({'message': 'Successfully updated'})
+    else:
+        response = jsonify({'message': 'Cannot find branch'}), 404
+    return response
