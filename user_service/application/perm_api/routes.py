@@ -23,6 +23,10 @@ or an API key args as a query argument, in this cases we have to use
 request_loader
 """
 
+@perm_api_blueprint.route('/', methods=['GET'])
+def workttest():
+    return jsonify({'work':'hurray'})
+
 
 @login_manager.request_loader
 def load_user_from_request(request):
@@ -40,9 +44,12 @@ def get_users():
     data = []
     for row in User.query.all():
         data.append(row.to_json())
-
     response = jsonify(data)
     return response
+
+#put User
+
+
 
 
 def set_privilege(userid):
@@ -57,6 +64,7 @@ def set_privilege(userid):
         item.pageallocation_id = page_id
         db.session.add(item)
         db.session.commit()
+#put  Userpriviledge
 
     # No returns since this method is called within a function
 
@@ -114,6 +122,10 @@ def user_register():
     # When User is created, Priviledges are set
     set_privilege(result.get('id'))
     return response
+
+
+
+
 
 
 @perm_api_blueprint.route('/api/user/login', methods=['POST'])
@@ -183,11 +195,35 @@ def usertype_create():
 
 @perm_api_blueprint.route('/api/user-role/<id>', methods=['GET'])
 def usertype_get(id):
-    item = Roles.query.filter_by(id=id).all()
+    item = Roles.query.filter_by(id=id).first()
     if item is not None:
         response = jsonify(item.to_json())
     else:
         response = jsonify({'message': 'Cannot find a role'}), 404
+    return response
+
+@perm_api_blueprint.route('/api/user-role-delete/<id>', methods=['DELETE'])
+def usertype_delete(id):
+    item = Roles.query.filter_by(id=id).first()
+    if item is not None:
+        db.session.delete(item)
+        db.session.commit()
+        # response= jsonify(item.to_delete)
+        response = jsonify({'message': 'Successfully deleted'})
+    else:
+        response = jsonify({'message': 'Cannot find a role'}), 404
+    return response
+
+@perm_api_blueprint.route('/api/user-role-update/<id>', methods=['PUT'])
+def usertype_update(id):
+    item = Roles.query.filter_by(id=id).first()
+    if item is not None:
+        name= request.form['name']
+        item.name = name
+        db.session.commit()
+        response = jsonify({'message': 'Successfully updated'})
+    else:
+        response = jsonify({'message': 'Cannot find branch'}), 404
     return response
 
 
@@ -224,6 +260,8 @@ def getall_pages():
 
     response = jsonify({'data': items})
     return response
+
+
 
 
 @perm_api_blueprint.route('/api/get-section-postion/<user_id>', methods=['GET'])
@@ -308,3 +346,33 @@ def branch_get(id):
     else:
         response = jsonify({'message': 'Cannot find branch'}), 404
     return response
+
+@perm_api_blueprint.route('/api/delete-branch/<id>', methods=['DELETE'])
+def branch_delete(id):
+    item = Branch.query.filter_by(id=id).first()
+    if item is not None:
+        db.session.delete(item)
+        db.session.commit()
+        #response= jsonify(item.to_delete)
+        response = jsonify({'message':'Successfully deleted'})
+    else:
+        response = jsonify({'message': 'Cannot find branch'}), 404
+    return response
+
+@perm_api_blueprint.route('/api/update-branch/<id>', methods=['PUT'])
+def branch_put(id):
+    item = Branch.query.filter_by(id=id).first()
+    if item is not None:
+        name = request.form['name']
+        #item = request.form['item']
+        item.name = name
+       # item.item = item
+
+
+        db.session.commit()
+        #response= jsonify(item.to_de)
+        response = jsonify({'message':'Successfully updated'})
+    else:
+        response = jsonify({'message': 'Cannot find branch'}), 404
+    return response
+
