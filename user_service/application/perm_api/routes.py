@@ -567,3 +567,388 @@ def gen_staff_code():
     else:
         code = '0001'
         return jsonify({'code': code})
+@perm_api_blueprint.route('/api/student/registration/', methods=['POST'])
+def Student_registration():
+    name = request.form['name']
+    code = request.form['code']
+    roll_number = request.form['roll_number']
+    student_address = request.form['student_address']
+    gender = request.form['gender']
+    date_of_birth = request.form['date_of_birth']
+    parent_name = request.form['parent_name']
+    parent_address = request.form['parent_address']
+    parent_mobile_number = request.form['parent_mobile_number']
+    parent_landline = request.form['parent_landline']
+    parent_email = request.form['parent_email']
+    old_school_name = request.form['old_school_name']
+    old_school_grade = request.form['old_school_grade']
+    old_school_joined = request.form['old_school_joined']
+    old_school_left = request.form['old_school_left']
+    datetime = request.form['datetime']
+    active = request.form['active']
+    grade = request.form['grade']
+    join_date = request.form['join_date']
+    blood_group = request.form['blood_group']
+    nationality = request.form['nationality']
+    student_email = request.form['student_email']
+
+    item_add = Studentregistration()
+
+    item_add.name = name
+    item_add.code = code
+    item_add.roll_number = roll_number
+    item_add.student_address = student_address
+    item_add.gender = gender
+    item_add.date_of_birth = date_of_birth
+    item_add.parent_name = parent_name
+    item_add.parent_address = parent_address
+    item_add.parent_mobile_number = parent_mobile_number
+    item_add.parent_landline = parent_landline
+    item_add.parent_email = parent_email
+    item_add.old_school_name = old_school_name
+    item_add.old_school_grade = old_school_grade
+    item_add.old_school_joined = old_school_joined
+    item_add.old_school_left = old_school_left
+    item_add.datetime = datetime
+    if active is 'True'or 'true':
+        item_add.active = True
+    else:
+        item_add.active= False
+    item_add.grade = grade
+    item_add.join_date = join_date
+    item_add.blood_group = blood_group
+    item_add.nationality = nationality
+    item_add.student_email = student_email
+    # item_add.studentattendance =studentattendance
+    db.session.add(item_add)
+    db.session.commit()
+
+    result = item_add.to_json()
+    return result
+
+
+@perm_api_blueprint.route('/api/get-student/<id>', methods=['GET'])
+def student_get(id):
+    item = Studentregistration.query.filter_by(id=id).first()
+    if item is not None:
+        response1 = jsonify(item.to_json())
+    else:
+        response1 = jsonify({'message': 'can not find Student'}), 404
+    return response1
+
+
+@perm_api_blueprint.route('/api/putstudentR/<id>', methods=['PUT'])
+def st_put(id):
+    item = Studentregistration.query.filter_by(id=id).first()
+    if item is not None:
+        name = request.form['name']
+        code = request.form['code']
+        roll_number = request.form['roll_number']
+        student_address = request.form['student_address']
+        gender = request.form['gender']
+        date_of_birth = request.form['date_of_birth']
+        parent_name = request.form['parent_name']
+        parent_address = request.form['parent_address']
+        parent_mobile_number = request.form['parent_mobile_number']
+        parent_landline = request.form['parent_landline']
+        parent_email = request.form['parent_email']
+        old_school_name = request.form['old_school_name']
+        old_school_grade = request.form['old_school_grade']
+        old_school_joined = request.form['old_school_joined']
+        old_school_left = request.form['old_school_left']
+        datetime = request.form['datetime']
+        active = request.form['active']
+        grade = request.form['grade']
+        join_date = request.form['join_date']
+        blood_group = request.form['blood_group']
+        nationality = request.form['nationality']
+        student_email = request.form['student_email']
+
+        item.name = name
+        item.code = code
+        item.roll_number = roll_number
+        item.student_address = student_address
+        item.gender = gender
+        item.date_of_birth = date_of_birth
+        item.parent_name = parent_name
+        item.parent_address = parent_address
+        item.parent_mobile_number = parent_mobile_number
+        item.parent_landline = parent_landline
+        item.parent_email = parent_email
+        item.old_school_name = old_school_name
+        item.old_school_grade = old_school_grade
+        item.old_school_joined = old_school_joined
+        item.old_school_left = old_school_left
+        item.datetime = datetime
+        item.active = active
+        item.grade = grade
+        item.join_date = join_date
+        item.blood_group = blood_group
+        item.nationality = nationality
+        item.student_email = student_email
+        db.seesion.update(item)
+
+        db.session.commit()
+
+        response = jsonify({"message": "updated student data"})
+    else:
+        response = jsonify({"message": "can not find student details"})
+    return response
+
+
+@perm_api_blueprint.route('/api/del-std/<id>', methods=['PUT'])
+def student_delet(id):
+    item = Studentregistration.query.filter_by(id=id).first()
+    if item is not None:
+        active = request.form['active']
+        if active is 'false' or 'False':
+            item.active = False
+        db.session.add(item)
+        db.session.commit()
+        response = jsonify({'message': 'deletion completed'})
+
+    else:
+        response = jsonify({'message': 'can not find Student'}), 404
+    return response
+
+
+##############################################################################
+
+
+###studentattendance post
+
+
+def check_attended(std_code):
+    item = Studentattendance.query.filter_by(id=std_code).first()
+    if item is not None:
+        return True
+    else:
+        return False
+
+
+@perm_api_blueprint.route('/api/std-attd/<std_code>', methods=['POST'])
+def get_attendance(std_code):
+    item = Studentattendance.query.filter_by(student_code=std_code).first()
+
+    student_code = request.form['student_code']
+    student_name = request.form['student_name']
+    date = request.form['date']
+    day = request.form['day']
+    month = request.form['month']
+    year = request.form['year']
+    attendance = request.form['attendance']
+    remarks = request.form['remarks']
+    status = request.form['status']
+    grade = request.form['grade']
+    student_id = request.form['student_id']
+
+    item = Studentattendance()
+
+    item.student_code = student_code
+    item.student_name = student_name
+    item.date = date
+    item.day = day
+    item.month = month
+    item.year = year
+    item.attendance = attendance
+    item.remarks = remarks
+    if status is 'false' or 'False':
+        item.status = False
+    item.grade = grade
+    item.student_id = student_id
+
+    check_bool = check_attended(std_code)
+    if not check_bool:
+        db.session.add(item)
+        db.session.commit()
+
+        result = item.to_json()
+        return result
+    else:
+        return jsonify({'message': 'attendance already marked'})
+
+
+@perm_api_blueprint.route('/api/get-studentattend/<id>', methods=['GET'])
+def studentattend_get(id):
+    item = Studentattendance.query.filter_by(id=id).first()
+    if item is not None:
+        response2 = jsonify(item.to_json())
+    else:
+        response2 = jsonify({'message': 'can not find Student'})
+    return response2
+
+
+@perm_api_blueprint.route('/api/put-studentA/<id>', methods=['PUT'])
+def student_put(id):
+    item = Studentattendance.query.filter_by(id=id).first()
+    if item is not None:
+        student_name = request.form['student_name']
+        date = request.form['date']
+        month = request.form['month']
+        year = request.form['year']
+        attendance = request.form['attendance']
+        remarks = request.form['remarks']
+        status = request.form['status']
+        grade = request.form['grade']
+        # student_id = request.form['student_id']
+        item.student_name = student_name
+        item.date = date
+        item.month = month
+        item.year = year
+        item.attendance = attendance
+        item.remarks = remarks
+        if status is 'false' or 'False':
+            item.status = False
+        item.grade = grade
+        # item.student_id = student_id
+        db.session.add(item)
+
+        db.session.commit()
+        response = jsonify({'message': 'updated'})
+    else:
+        response = jsonify({'message': 'not found student'})
+    return response
+
+
+############################################@@###############################
+##studentfee
+
+@perm_api_blueprint.route('/api/student/fee/', methods=['POST'])
+def Student_fee():
+    fee_type_id = request.form['fee_type_id']
+    student_name = request.form['student_name']
+    pay_date = request.form['pay_date']
+    actual_amount = request.form['actual_amount']
+    balance_amount = request.form['balance_amount']
+    total_amount = request.form['total_amount']
+    pay_amount = request.form['pay_amount']
+    fine = request.form['fine']
+    prefix = request.form['prefix']
+    individual_receipt = request.form['individual_receipt']
+    mode_of_pay = request.form['mode_of_pay']
+    receipt_number = request.form['receipt_number']
+    bank = request.form['bank']
+    cheque_number = request.form['cheque_number']
+    cheque_date = request.form['cheque_date']
+    remark = request.form['remark']
+    status = request.form['status']
+    active = request.form['active']
+    student_id = request.form['student_id']
+
+    item = Studentfee()
+    item.fee_type_id = fee_type_id
+    item.student_name = student_name
+    item.pay_date = pay_date
+    item.actual_amount = actual_amount
+    item.balance_amount = balance_amount
+    item.total_amount = total_amount
+    item.pay_amount = pay_amount
+    item.fine = fine
+    item.prefix = prefix
+    item.individual_receipt = individual_receipt
+    item.mode_of_pay = mode_of_pay
+    item.receipt_number = receipt_number
+    item.bank = bank
+    item.cheque_number = cheque_number
+    item.cheque_date = cheque_date
+    item.remark = remark
+    if status is 'True' or 'true':
+        item.status = True
+    else:
+        item.status = False
+    if active is 'false' or 'False':
+        item.active = False
+    else:
+        item.active = True
+    item.student_id = student_id
+
+    # check = check_stdpaid(id)
+    # if not check:
+    db.session.add(item)
+    db.session.commit()
+    result = item.to_json()
+    return result
+
+
+@perm_api_blueprint.route('/api/student/fee-details/<id>', methods=['GET'])
+def studfee_get(id):
+    item = Studentfee.query.filter_by(id=id).first()
+    if item is not None:
+        response = jsonify(item.to_json())
+    else:
+        response = jsonify({'message': 'can not find Student'})
+    return response
+
+@perm_api_blueprint.route('/api/student/putfee-details/<id>', methods=['PUT'])
+def put_details(id):
+    item = Studentfee.query.filter_by(id=id).first()
+    if item is not None:
+        fee_type_id = request.form['fee_type_id']
+        student_name = request.form['student_name']
+        pay_date = request.form['pay_date']
+        actual_amount = request.form['actual_amount']
+        balance_amount = request.form['balance_amount']
+        total_amount = request.form['total_amount']
+        pay_amount = request.form['pay_amount']
+        fine = request.form['fine']
+        prefix = request.form['prefix']
+        individual_receipt = request.form['individual_receipt']
+        mode_of_pay = request.form['mode_of_pay']
+        receipt_number = request.form['receipt_number']
+        bank = request.form['bank']
+        cheque_number = request.form['cheque_number']
+        cheque_date = request.form['cheque_date']
+        remark = request.form['remark']
+        status = request.form['status']
+        active = request.form['active']
+        student_id = request.form['student_id']
+
+        item = Studentfee()
+        item.fee_type_id = fee_type_id
+        item.student_name = student_name
+        item.pay_date = pay_date
+        item.actual_amount = actual_amount
+        item.balance_amount = balance_amount
+        item.total_amount = total_amount
+        item.pay_amount = pay_amount
+        item.fine = fine
+        item.prefix = prefix
+        item.individual_receipt = individual_receipt
+        item.mode_of_pay = mode_of_pay
+        item.receipt_number = receipt_number
+        item.bank = bank
+        item.cheque_number = cheque_number
+        item.cheque_date = cheque_date
+        item.remark = remark
+        if status is 'True' or 'true':
+            item.status = True
+        else:
+            item.status = False
+        if active is 'false' or 'False':
+            item.active = False
+        else:
+            item.active = True
+        item.student_id = student_id
+        db.session.add(item)
+
+        db.session.commit()
+        response = jsonify({'message': 'updated'})
+    else:
+        response = jsonify({'message': 'not found student'})
+    return response
+
+
+@perm_api_blueprint.route('/api/del-stdf/<id>', methods=['PUT'])
+def student_deletf(id):
+    item = Studentfee.query.filter_by(id=id).first()
+    if item is not None:
+        active = request.form['active']
+        if active is 'false' or 'False':
+            item.active = False
+        db.session.add(item)
+        db.session.commit()
+        response = jsonify({'message': 'deletion completed'})
+
+    else:
+        response = jsonify({'message': 'can not find Student'}), 404
+    return response
