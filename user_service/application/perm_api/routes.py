@@ -1,6 +1,8 @@
 from . import perm_api_blueprint
 from .. import db, login_manager
-from ..models import Roles, User, Pageallocation, Userpriviledge, Branch, Useraddress, Staffstructure, Staff, Studentregistration, Studentattendance, Studentfee, Paper_creation, Questions, Answers,  Examresults, Exambooking, Course, Subjects
+from ..models import Roles, User, Pageallocation, Userpriviledge, Branch, Useraddress, Staffstructure, Staff, \
+    Studentregistration, Studentattendance, Studentfee, Paper_creation, Questions, Answers, Examresults, Exambooking, \
+    Course, Subjects
 from flask import make_response, request, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
 
@@ -277,22 +279,30 @@ def get_p_pages():
     response = jsonify(items)
     return response
 
+
 @perm_api_blueprint.route('/api/get-priv-pages/<section>/<user_id>', methods=['GET'])
 def get_priv_pages(section, user_id):
-    item = Userpriviledge.query.join(Pageallocation, Pageallocation.id == Userpriviledge.pageallocation_id).join(User, User.id == Userpriviledge.user_id).filter(Pageallocation.psection==section,Pageallocation.status==True,Userpriviledge.user_id==user_id).order_by(Pageallocation.pposition).with_entities(Pageallocation.name, Userpriviledge.status, Userpriviledge.id)
+    item = Userpriviledge.query.join(Pageallocation, Pageallocation.id == Userpriviledge.pageallocation_id).join(User,
+                                                                                                                 User.id == Userpriviledge.user_id).filter(
+        Pageallocation.psection == section, Pageallocation.status == True, Userpriviledge.user_id == user_id).order_by(
+        Pageallocation.pposition).with_entities(Pageallocation.name, Userpriviledge.status, Userpriviledge.id)
 
     if item is not None:
         data = list()
         for row in item:
-            data.append({'name':row[0], 'status':row[1], 'priv_id':row[2]})
+            data.append({'name': row[0], 'status': row[1], 'priv_id': row[2]})
         response = jsonify(data), 200
     else:
         response = jsonify({'message': 'No Subsections'}), 404
     return response
 
+
 @perm_api_blueprint.route('/api/get-new-priv/<section>', methods=['GET'])
 def get_new_priv(section):
-    item = Pageallocation.query.outerjoin(Userpriviledge, Pageallocation.id == Userpriviledge.pageallocation_id).filter(Pageallocation.psection==section, Pageallocation.status == True, Userpriviledge.pageallocation_id == None).with_entities(Pageallocation.name, Pageallocation.route, Pageallocation.id)
+    item = Pageallocation.query.outerjoin(Userpriviledge, Pageallocation.id == Userpriviledge.pageallocation_id).filter(
+        Pageallocation.psection == section, Pageallocation.status == True,
+        Userpriviledge.pageallocation_id == None).with_entities(Pageallocation.name, Pageallocation.route,
+                                                                Pageallocation.id)
 
     if item is not None:
         data = list()
@@ -303,7 +313,6 @@ def get_new_priv(section):
         response = jsonify({'message': 'No Subsections'}), 404
     return response
 
-@perm_api_blueprint.route('/api/set-update-priv', methods=[''])
 
 @perm_api_blueprint.route('/api/get-section-postion/<user_id>', methods=['GET'])
 def get_pages_sections(user_id):
@@ -386,58 +395,6 @@ def branch_get(id):
     item = Branch.query.filter_by(id=id).first()
     if item is not None:
         response = jsonify(item.to_json())
-    else:
-        response = jsonify({'message': 'Cannot find branch'}), 404
-    return response
-
-
-@perm_api_blueprint.route('/api/delete-branch/<id>', methods=['DELETE'])
-def branch_delete(id):
-    item = Branch.query.filter_by(id=id).first()
-    if item is not None:
-        db.session.delete(item)
-        db.session.commit()
-        # response= jsonify(item.to_delete)
-        response = jsonify({'message': 'Successfully deleted'})
-    else:
-        response = jsonify({'message': 'Cannot find branch'}), 404
-    return response
-
-
-@perm_api_blueprint.route('/api/update-branch/<id>', methods=['PUT'])
-def branch_put(id):
-    item = Branch.query.filter_by(id=id).first()
-    if item is not None:
-        name = request.form['name']
-        item.name = name
-
-        db.session.commit()
-        response = jsonify({'message': 'Successfully updated'})
-    else:
-        response = jsonify({'message': 'Cannot find branch'}), 404
-    return response
-
-
-@perm_api_blueprint.route('/api/user-role-delete/<id>', methods=['DELETE'])
-def usertype_delete(id):
-    item = Roles.query.filter_by(id=id).first()
-    if item is not None:
-        db.session.delete(item)
-        db.session.commit()
-        response = jsonify({'message': 'Successfully deleted'})
-    else:
-        response = jsonify({'message': 'Cannot find a role'}), 404
-    return response
-
-
-@perm_api_blueprint.route('/api/user-role-update/<id>', methods=['PUT'])
-def usertype_update(id):
-    item = Roles.query.filter_by(id=id).first()
-    if item is not None:
-        name = request.form['name']
-        item.name = name
-        db.session.commit()
-        response = jsonify({'message': 'Successfully updated'})
     else:
         response = jsonify({'message': 'Cannot find branch'}), 404
     return response
@@ -612,10 +569,10 @@ def Student_registration():
     item_add.old_school_joined = old_school_joined
     item_add.old_school_left = old_school_left
     item_add.datetime = datetime
-    if active is 'True'or 'true':
+    if active is 'True' or 'true':
         item_add.active = True
     else:
-        item_add.active= False
+        item_add.active = False
     item_add.grade = grade
     item_add.join_date = join_date
     item_add.blood_group = blood_group
@@ -881,6 +838,7 @@ def studfee_get(id):
         response = jsonify({'message': 'can not find Student'})
     return response
 
+
 @perm_api_blueprint.route('/api/student/putfee-details/<id>', methods=['PUT'])
 def put_details(id):
     item = Studentfee.query.filter_by(id=id).first()
@@ -957,14 +915,6 @@ def student_deletf(id):
 
 
 ##########JATIN
-@perm_api_blueprint.route('/api/user-role/<id>', methods=['GET'])
-def usertype_get(id):
-    item = Roles.query.filter_by(id=id).first()
-    if item is not None:
-        response = jsonify(item.to_json())
-    else:
-        response = jsonify({'message': 'Cannot find a role'}), 404
-    return response
 
 @perm_api_blueprint.route('/api/user-role-delete/<id>', methods=['DELETE'])
 def usertype_delete(id):
@@ -978,11 +928,12 @@ def usertype_delete(id):
         response = jsonify({'message': 'Cannot find a role'}), 404
     return response
 
+
 @perm_api_blueprint.route('/api/user-role-update/<id>', methods=['PUT'])
 def usertype_update(id):
     item = Roles.query.filter_by(id=id).first()
     if item is not None:
-        name= request.form['name']
+        name = request.form['name']
         item.name = name
         db.session.commit()
         response = jsonify({'message': 'Successfully updated'})
@@ -997,23 +948,24 @@ def branch_delete(id):
     if item is not None:
         db.session.delete(item)
         db.session.commit()
-        #response= jsonify(item.to_delete)
-        response = jsonify({'message':'Successfully deleted'})
+        # response= jsonify(item.to_delete)
+        response = jsonify({'message': 'Successfully deleted'})
     else:
         response = jsonify({'message': 'Cannot find branch'}), 404
     return response
+
 
 @perm_api_blueprint.route('/api/update-branch/<id>', methods=['PUT'])
 def branch_put(id):
     item = Branch.query.filter_by(id=id).first()
     if item is not None:
         name = request.form['name']
-        #item = request.form['item']
+        # item = request.form['item']
         item.name = name
-       # item.item = item
+        # item.item = item
         db.session.commit()
-        #response= jsonify(item.to_de)
-        response = jsonify({'message':'Successfully updated'})
+        # response= jsonify(item.to_de)
+        response = jsonify({'message': 'Successfully updated'})
     else:
         response = jsonify({'message': 'Cannot find branch'}), 404
     return
@@ -1023,19 +975,20 @@ def branch_put(id):
 def course_create():
     course_name = request.form['course_name']
     course_semester = request.form['course_semester']
-   # status = request.form['status']
-   # id = request.form['id']
+    # status = request.form['status']
+    # id = request.form['id']
     item = Course()
     item.course_name = course_name
     item.course_semester = course_semester
-   # item.status = status
-    #item.id = id
+    # item.status = status
+    # item.id = id
 
     db.session.add(item)
     db.session.commit()
 
     response = jsonify({'message': 'course added', 'course': item.to_json()})
     return response
+
 
 @perm_api_blueprint.route('/api/course/update/<id>', methods=['PUT'])
 def course_update(id):
@@ -1045,7 +998,7 @@ def course_update(id):
         course_semester = request.form['course_semester']
 
         item.course_name = course_name
-        item.course_semester= course_semester
+        item.course_semester = course_semester
 
         db.session.commit()
         # response= jsonify(item.to_de)
@@ -1054,7 +1007,8 @@ def course_update(id):
         response = jsonify({'message': 'Cannot find course'}), 404
     return response
 
-#get
+
+# get
 @perm_api_blueprint.route('/api/course/get/<id>', methods=['GET'])
 def course_get(id):
     item = Course.query.filter_by(id=id).first()
@@ -1064,7 +1018,8 @@ def course_get(id):
         response = jsonify({'message': 'Cannot find course'}), 404
     return response
 
-#getall
+
+# getall
 @perm_api_blueprint.route('/api/course/getall', methods=['GET'])
 def getall_course():
     items = list()
@@ -1074,7 +1029,8 @@ def getall_course():
     response = jsonify({'results': items})
     return response
 
-#Delete
+
+# Delete
 @perm_api_blueprint.route('/api/course/delete/<id>', methods=['Delete'])
 def delete_course(id):
     item = Course.query.filter_by(id=id).first()
@@ -1086,8 +1042,10 @@ def delete_course(id):
     else:
         response = jsonify({'message': 'Cannot find course'}), 404
     return response
+
+
 #########################################################################################################################
-#subjects
+# subjects
 @perm_api_blueprint.route('/api/create/subj', methods=['Post'])
 def subject_create():
     name = request.form['name']
@@ -1096,7 +1054,7 @@ def subject_create():
     # id = request.form['id']
     item = Subjects()
     item.name = name
-    item.course_id= course_id
+    item.course_id = course_id
     # item.status = status
     # item.id = id
 
@@ -1115,7 +1073,7 @@ def sub_update(id):
         course_id = request.form['course_id']
 
         item.name = name
-        item.course_id= course_id
+        item.course_id = course_id
 
         db.session.commit()
         # response= jsonify(item.to_de)
@@ -1123,6 +1081,7 @@ def sub_update(id):
     else:
         response = jsonify({'message': 'Cannot find subject'}), 404
     return response
+
 
 @perm_api_blueprint.route('/api/get/<id>', methods=['GET'])
 def subject_get(id):
@@ -1133,6 +1092,7 @@ def subject_get(id):
         response = jsonify({'message': 'Cannot find subject'}), 404
     return response
 
+
 @perm_api_blueprint.route('/api/getall', methods=['GET'])
 def subject_all():
     items = list()
@@ -1141,6 +1101,7 @@ def subject_all():
 
     response = jsonify({'results': items})
     return response
+
 
 @perm_api_blueprint.route('/api/sub/delete/<id>', methods=['DELETE'])
 def subject_delete():
@@ -1154,16 +1115,17 @@ def subject_delete():
         response = jsonify({'message': 'Cannot find subject'}), 404
     return response
 
+
 ##########################################################################################################################
-#paper-creation
+# paper-creation
 @perm_api_blueprint.route('/api/paper-create', methods=['Post'])
 def paper_create():
     paper_id = request.form['paper_id']
     subject_id = request.form['subject_id']
     duration = request.form['duration']
     no_of_questions = request.form['no_of_questions']
-    paper_no= request.form['paper_no']
-   # status = request.form['status']
+    paper_no = request.form['paper_no']
+    # status = request.form['status']
     user_id = request.form['user_id']
 
     item = Paper_creation()
@@ -1171,10 +1133,10 @@ def paper_create():
     item.paper_id = paper_id
     item.subject_id = subject_id
     item.duration = duration
-    item.no_of_questions= no_of_questions
-    item.paper_no =paper_no
-   # item.status=status
-    item.user_id=user_id
+    item.no_of_questions = no_of_questions
+    item.paper_no = paper_no
+    # item.status=status
+    item.user_id = user_id
 
     db.session.add(item)
     db.session.commit()
@@ -1192,6 +1154,7 @@ def getbyid(paper_id):
         response = jsonify({'message': 'Cannot find paper'}), 404
     return response
 
+
 @perm_api_blueprint.route('/api/paper-getall', methods=['GET'])
 def getallpaper():
     items = list()
@@ -1200,6 +1163,7 @@ def getallpaper():
 
     response = jsonify({'results': items})
     return response
+
 
 @perm_api_blueprint.route('/api/paper-update', methods=['PUT'])
 def paper_update(id):
@@ -1212,7 +1176,6 @@ def paper_update(id):
         paper_no = request.form['paper_no']
         # status = request.form['status']
         user_id = request.form['user_id']
-
 
         item.paper_id = paper_id
         item.subject_id = subject_id
@@ -1229,7 +1192,8 @@ def paper_update(id):
         response = jsonify({'message': 'Cannot find paper'}), 404
     return response
 
-#question
+
+# question
 @perm_api_blueprint.route('/api/ques/create/', methods=['POST'])
 def question_create():
     question_id = request.form['question_id']
@@ -1240,7 +1204,6 @@ def question_create():
     correct_ans = request.form['correct_ans']
 
     item = Questions()
-
 
     item.question_id = question_id
     item.paper_id = paper_id
@@ -1254,6 +1217,7 @@ def question_create():
 
     response = jsonify({'message': 'Question created', 'questions': item.to_json()})
     return response
+
 
 @perm_api_blueprint.route('/api/ques/update/', methods=['PUT'])
 def question_update():
@@ -1280,6 +1244,7 @@ def question_update():
         response = jsonify({'message': 'Cannot find question'}), 404
     return response
 
+
 @perm_api_blueprint.route('/api/ques/get/<question_id>', methods=['GET'])
 def getquesbyid(question_id):
     item = Questions.query.filter_by(question_id=question_id).first()
@@ -1288,6 +1253,7 @@ def getquesbyid(question_id):
     else:
         response = jsonify({'message': 'Cannot find subject'}), 404
     return response
+
 
 @perm_api_blueprint.route('/api/ques/getall', methods=['GET'])
 def getallques():
@@ -1298,32 +1264,32 @@ def getallques():
     response = jsonify({'results': items})
     return response
 
+
 ##########################################################################################################################
-#answer
+# answer
 @perm_api_blueprint.route('/api/ans/create/', methods=['POST'])
 def answer_create():
     answer_id = request.form['answer_id']
     question_id = request.form['question_id']
     answer = request.form['answer']
     answer_order = request.form['answer_order']
-    #status = request.form['status']
-
+    # status = request.form['status']
 
     item = Answers()
 
-
     item.question_id = question_id
     item.answer_id = answer_id
-    item.answer= answer
+    item.answer = answer
     item.answer_order = answer_order
 
-    #item.status = status
+    # item.status = status
 
     db.session.add(item)
     db.session.commit()
 
     response = jsonify({'message': 'Answer created', 'Answer': item.to_json()})
     return response
+
 
 @perm_api_blueprint.route('/api/ans/update/<answer_id>', methods=['PUT'])
 def answer_update(answer_id):
@@ -1345,6 +1311,7 @@ def answer_update(answer_id):
         response = jsonify({'message': 'Cannot find question'}), 404
     return response
 
+
 @perm_api_blueprint.route('/api/ans/get/<answer_id>', methods=['GET'])
 def get_ans_byID(answer_id):
     item = Answers.query.filter_by(answer_id=answer_id).first()
@@ -1353,6 +1320,7 @@ def get_ans_byID(answer_id):
     else:
         response = jsonify({'message': 'Cannot find subject'}), 404
     return response
+
 
 @perm_api_blueprint.route('/api/ans/getall', methods=['GET'])
 def getall_ans():
@@ -1365,26 +1333,26 @@ def getall_ans():
 
 
 ########################################################################################################################
-#exambooking
+# exambooking
 @perm_api_blueprint.route('/api/exm-book/create/', methods=['POST'])
 def exm_book():
-    #id = request.form['id']
+    # id = request.form['id']
     exam_id = request.form['exam_id']
     student_id = request.form['student_id']
     subject_id = request.form['subject_id']
-    exam_date =request.form['exam_date']
-    start_time= request.form['start_time']
+    exam_date = request.form['exam_date']
+    start_time = request.form['start_time']
     end_time = request.form['end_time']
     user_id = request.form['user_id']
 
     item = Exambooking()
-   # item.id = id
+    # item.id = id
     item.exam_id = exam_id
     item.student_id = student_id
     item.subject_id = subject_id
     item.exam_date = exam_date
     item.start_time = start_time
-    item.end_time  = end_time
+    item.end_time = end_time
     item.user_id = user_id
 
     db.session.add(item)
@@ -1392,6 +1360,7 @@ def exm_book():
 
     response = jsonify({'message': 'Exam-booking created', 'Exam-booking': item.to_json()})
     return response
+
 
 @perm_api_blueprint.route('/api/exm-book/get/<id>', methods=['GET'])
 def getexambook(id):
@@ -1402,6 +1371,7 @@ def getexambook(id):
         response = jsonify({'message': 'Cannot find exam'}), 404
     return response
 
+
 @perm_api_blueprint.route('/api/exm-book/getall', methods=['GET'])
 def getexambookall():
     items = list()
@@ -1410,6 +1380,7 @@ def getexambookall():
 
     response = jsonify({'results': items})
     return response
+
 
 @perm_api_blueprint.route('/api/exm-book/delete/<id>', methods=['DELETE'])
 def deleteexm(id):
@@ -1423,8 +1394,9 @@ def deleteexm(id):
         response = jsonify({'message': 'Cannot find exam'}), 404
     return response
 
+
 ########################################################################################################################
-#examresult
+# examresult
 @perm_api_blueprint.route('/api/exm-result/create', methods=['POST'])
 def examresult():
     student_id = request.form['student_id']
@@ -1432,7 +1404,7 @@ def examresult():
     exam_log = request.form['exam_log']
     results = request.form['results']
     marks = request.form['marks']
-    #id =  request.form['id']
+    # id =  request.form['id']
 
     item = Examresults()
     # item.id = id
@@ -1442,12 +1414,12 @@ def examresult():
     item.results = results
     item.marks = marks
 
-
     db.session.add(item)
     db.session.commit()
 
     response = jsonify({'message': 'Exam-result created', 'Exam-result': item.to_json()})
     return
+
 
 @perm_api_blueprint.route('/api/exm-result/get/<id>', methods=['GET'])
 def getresult(id):
@@ -1458,6 +1430,7 @@ def getresult(id):
         response = jsonify({'message': 'Cannot find result'}), 404
     return response
 
+
 @perm_api_blueprint.route('/api/exm-result/getall', methods=['GET'])
 def getresultall():
     items = list()
@@ -1467,4 +1440,18 @@ def getresultall():
     response = jsonify({'results': items})
     return response
 
+
+@perm_api_blueprint.route('/api/register-priv/<page_id>', methods=['GET'])
+def register_priv( page_id):
+    for row in User.query.filter(User.status==True).all():
+        user_id = row.to_json().get('id')
+
+        User.query
+        items = Userpriviledge()
+        items.user_id = user_id
+        items.pageallocation_id = page_id
+        items.status = False
+        db.session.add(items)
+        db.session.commit()
+    return jsonify({'message': 'Successfully inserted'}), 200
 
