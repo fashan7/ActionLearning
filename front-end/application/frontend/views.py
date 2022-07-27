@@ -144,3 +144,33 @@ def staff_reg():
         return jsonify({'status': response_result.status_code})
 
     return render_template('staff/staff_register.html', sections=nav_data, branches=branches, roles=roles, departments=departments, code=staff_code)
+
+@frontend_blueprint.route('/set-priv', methods=['GET', 'POST'])
+def set_priv():
+    if not session.get('user'):
+        return redirect(url_for('frontend.login'))
+
+    user_id = session['user'].get('id')
+    nav_data = navigation_data(user_id)
+
+    users = UserClient.get_all_users()
+    return render_template('user/set_priviledge.html', sections=nav_data, users=users)
+
+def process_load_privledge(user_id):
+    pages = PrivilegeClient.get_primary_section()
+    form_dict = dict()
+    for key, value in pages.items():
+        section_name = value
+        data = PrivilegeClient.get_priv_pages(section_name, user_id)
+        data_not_set = PrivilegeClient.get_new_pages_not_set(section_name)
+        form_dict.update({section_name:[data,data_not_set]})
+    return form_dict
+
+@frontend_blueprint.route('/get-page-priv', methods=['POST'])
+def get_page_priviledge():
+    pages = PrivilegeClient.get_primary_section()
+    user_id = request.form['user']
+    response = process_load_privledge(user_id)
+
+
+    return render_template('user/sub_load_pirv_page.html', pages=response)

@@ -78,7 +78,14 @@ class UserClient:
         payload = {
             'name': form.rolename.data
         }
-        url = ' http://127.0.0.1:5002/api/user-roles/create'
+        url = 'http://127.0.0.1:5002/api/user-roles/create'
         response = requests.request("POST", url=url, data=payload)
 
         return response
+
+    @staticmethod
+    def get_all_users():
+        url = "http://127.0.0.1:5002/api/users"
+        response = requests.request(method="GET", url=url)
+        users = response.json()
+        return users
