@@ -3,6 +3,7 @@ from . import forms
 from . import frontend_blueprint
 from .api.PriviledgeClient import PrivilegeClient
 from .api.UserClient import UserClient
+from .api.StaffClient import StaffClient
 from .. import login_manager
 
 from flask import render_template, session, redirect, url_for, flash, request, jsonify
@@ -107,3 +108,39 @@ def user_roles():
         return jsonify({'status': response_result.status_code})
 
     return render_template('user/user-roles.html', sections=nav_data)
+
+@frontend_blueprint.route('/staff-dep', methods=['GET','POST'])
+def department_reg():
+    if not session.get('user'):
+        return redirect(url_for('frontend.login'))
+
+    user_id = session['user'].get('id')
+    nav_data = navigation_data(user_id)
+
+    form = forms.DepartmentForm()
+    if request.method == "POST":
+        response_result = StaffClient.department_reg(form)
+        return jsonify({'status': response_result.status_code})
+
+    return render_template('staff/department.html', sections=nav_data)\
+
+
+@frontend_blueprint.route('/staff-register', methods=['GET','POST'])
+def staff_reg():
+    if not session.get('user'):
+        return redirect(url_for('frontend.login'))
+
+    user_id = session['user'].get('id')
+    nav_data = navigation_data(user_id)
+
+    branches = UserClient.get_branches()
+    roles = UserClient.get_roles()
+    departments = StaffClient.get_departments()
+    staff_code = StaffClient.get_staff_latest_code().get('code')
+
+    form = forms.StaffForm()
+    if request.method == "POST":
+        response_result = StaffClient.post_staff_reg(form)
+        return jsonify({'status': response_result.status_code})
+
+    return render_template('staff/staff_register.html', sections=nav_data, branches=branches, roles=roles, departments=departments, code=staff_code)

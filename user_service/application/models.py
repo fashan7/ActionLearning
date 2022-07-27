@@ -128,21 +128,6 @@ class Pageallocation(db.Model):
         }
 
 
-class Staffstructure(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(100), unique=False, nullable=False)
-    status = db.Column(db.Boolean, default=True)
-
-    def __repr__(self):
-        return '<id {}>'.format(self.id)
-
-    def to_json(self):
-        return {
-            'id': self.id,
-            'name': self.name
-        }
-
-
 class Userpriviledge(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     status = db.Column(db.Boolean, default=True)
@@ -164,7 +149,7 @@ class Course(db.Model):
     course_semester = db.Column(db.String(100),unique=False, nullable=False)
     status = db.Column(db.Boolean,default=True)
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    subfk = db.relationship('Subjects', uselist=False, backref="Course")
+    subfk = db.relationship('Subjects', uselist=False, backref="course")
     def __repr__(self):
         return '<status {}>'.format(self.status)
 
@@ -188,35 +173,48 @@ class Subjects(db.Model):
 
     def to_json(self):
         return{
-
             'id': self.id,
             'course_id': self.course_id,
             'name': self.name,
             'status': self.status
         }
 
-class Staff(UserMixin, db.Model):
+class Staffstructure(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(100), unique=False, nullable=False)
+    status = db.Column(db.Boolean, default=True)
+    staff_relation = db.relationship('Staff', uselist=False, backref="staffstructure")
 
-    id = db.Column(db.Integer, primary_key=True)
 
+    def __repr__(self):
+        return '<id {}>'.format(self.id)
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'name': self.name
+        }
+
+class Staff(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     code = db.Column(db.String(255), unique=True, nullable=False)
-    full_name = db.Column(db.String(255), unique=False, nullable=True)
-    address = db.Column(db.String(255), unique=False, nullable=True)
+    username = db.Column(db.String(255), unique=True, nullable=False)
     gender = db.Column(db.String(255), unique=False, nullable=True)
-    date_of_birth = db.Column(db.DateTime, default=dt.datetime.utcnow, nullable=False)
+    date_of_birth = db.Column(db.DateTime, nullable=True)
     mobile = db.Column(db.String(255), unique=False, nullable=True)
-    email = db.Column(db.String(255), unique=False, nullable=True)
     joining_date = db.Column(db.DateTime, default=dt.datetime.utcnow, nullable=False)
     is_active = db.Column(db.Boolean, default=True)
+    department_id = db.Column(db.Integer, db.ForeignKey('staffstructure.id'), nullable=False)
 
     def __repr__(self):
         return '<id %r>' % (self.id)
 
     def to_json(self):
         return {
-            'full_name': self.full_name,
-            'email': self.email,
             'id': self.id,
             'is_active': True,
-
+            'gender': self.gender,
+            'mobile': self.mobile,
+            'department_id': self.department_id,
+            'username': self.username
         }

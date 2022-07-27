@@ -17,9 +17,9 @@ def load_user(user_id):
 
 
 """
-sometime we have to login users without using cookies 
+sometime we have to login users without using cookies
 such as using header values
-or an API key args as a query argument, in this cases we have to use 
+or an API key args as a query argument, in this cases we have to use
 request_loader
 """
 
@@ -222,7 +222,7 @@ def page_allocate_create():
     return response
 
 
-@perm_api_blueprint.route('/api/staff/structure', methods=['POST'])
+@perm_api_blueprint.route('/api/department/create', methods=['POST'])
 def staff_structure():
     name = request.form['name']
 
@@ -234,9 +234,6 @@ def staff_structure():
     response = jsonify({'message': 'saved successfully'}), 200
     return response
 
-# @perm_api_blueprint.route('/api/user-role/<id>', methods=['GET'])
-# def usertype_get(id):
-#     item = Roles.query.filter_by(id=id).all()
 
 @perm_api_blueprint.route('/api/get-staff/<id>', methods=['GET'])
 def staff_get_id(id):
@@ -249,7 +246,7 @@ def staff_get_id(id):
         response = jsonify({'message': 'Cannot find any staff'}), 404
     return response
 
-@perm_api_blueprint.route('/api/staff', methods=['GET'])
+@perm_api_blueprint.route('/api/department', methods=['GET'])
 def staff_get():
     data = []
     for row in Staffstructure.query.all():
@@ -403,33 +400,71 @@ def usertype_update(id):
         response = jsonify({'message': 'Cannot find branch'}), 404
     return response
 
-@perm_api_blueprint.route('/api/staff/registration', methods=['POST'])
+# //staffcode fullname email phone username password department branch address1 address2 address3 postalcode city country
+@perm_api_blueprint.route('/api/staff/create', methods=['POST'])
 def staff_registration():
-    code = request.form['code']
-    full_name = request.form['full_name']
-    address = request.form['address']
+    code = request.form['staffcode']
+    firstname = request.form['firstname']
+    lastname = request.form['lastname']
+    username = request.form['username']
+    password = sha256_crypt.hash((str(request.form['password'])))
     gender = request.form['gender']
+    department = request.form['department']
+    branch = request.form['branch']
+    address1 = request.form['address1']
+    address2 = request.form['address2']
+    address3 = request.form['address3']
+    postalcode = request.form['postalcode']
+    city = request.form['city']
+    country = request.form['country']
     date_of_birth = request.form['date_of_birth']
     mobile = request.form['mobile']
     email = request.form['email']
-    joining_date = request.form['joining_date']
 
 
     item = Staff()
-    item.full_name = full_name
     item.code = code
-    item.address = address
+    item.department_id = department
     item.gender = gender
     item.date_of_birth = date_of_birth
     item.mobile = mobile
-    item.email = email
-    item.joining_date = joining_date
-
-
+    item.username = username
     db.session.add(item)
     db.session.commit()
 
-    response = jsonify({'added': item.to_json()})
+
+    #User Address
+    item_add = Useraddress()
+    item_add.address1 = address1
+    item_add.address2 = address2
+    item_add.address3 = address3
+    item_add.city = city
+    item_add.country = country
+    item_add.postal_code = postalcode
+    db.session.add(item_add)
+    db.session.commit()
+
+    result = item_add.to_json()
+    insert_addr_id = result.get('id')
+
+    #UserForm
+    item_user = User()
+    item_user.username = username
+    item_user.email = email
+    item_user.first_name = firstname
+    item_user.last_name = lastname
+    item_user.password = password
+    item_user.address_id = insert_addr_id
+    item_user.role_id = 2
+    item_user.branch_id = branch
+
+    db.session.add(item_user)
+    db.session.commit()
+    result = item_user.to_json()
+    response = jsonify({'message': 'User added', 'result': result})
+
+    # When User is created, Priviledges are set
+    set_privilege(result.get('id'))
     return response
 
 @perm_api_blueprint.route('/api/staff/get-staff', methods=['GET'])
@@ -446,7 +481,6 @@ def staff_get_id2(id):
     item = Staff.query.filter_by(id=id).first()
     # .query.filter_by(id=id).all()
     if item is not None:
-        print(item.to_json)
         response = jsonify(item.to_json())
     else:
         response = jsonify({'message': 'Cannot find any staff'}), 404
@@ -476,3 +510,17 @@ def staff_delete(id):
     else:
         response = jsonify({'message': 'Cannot find branch'}), 404
     return response
+
+
+@perm_api_blueprint.route('/api/gen-staff-code', methods=['GET'])
+def gen_staff_code():
+    item = Staff.query.order_by(Staff.id.desc()).first()
+    if item is not None:
+        data = item.to_json()
+        code = '000'+str(data.get('id')+1)
+        return jsonify({'code': code})
+    else:
+        code = '0001'
+        return jsonify({'code': code})
+
+
