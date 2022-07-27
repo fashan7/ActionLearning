@@ -13,3 +13,17 @@ class PrivilegeClient:
         sub_sections = r.json()
         return sub_sections
 
+    @staticmethod
+    def get_primary_section():
+        r = requests.get(f'http://127.0.0.1:5002/api/primary-pages')
+        return r.json()
+
+    @staticmethod
+    def get_priv_pages(section, user_id):
+        r = requests.get(f'http://127.0.0.1:5002/api/get-priv-pages/{section}/{user_id}')
+        return r.json() \
+
+    @staticmethod
+    def get_new_pages_not_set(section):
+        r = requests.get(f'http://127.0.0.1:5002/api/get-new-priv/{section}')
+        return r.json()

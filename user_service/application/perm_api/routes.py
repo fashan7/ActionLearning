@@ -1,6 +1,6 @@
 from . import perm_api_blueprint
 from .. import db, login_manager
-from ..models import Roles, User, Pageallocation, Userpriviledge, Branch, Useraddress, Staffstructure,Staff
+from ..models import Roles, User, Pageallocation, Userpriviledge, Branch, Useraddress, Staffstructure, Staff
 from flask import make_response, request, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
 
@@ -59,7 +59,7 @@ def set_privilege(userid):
         item.pageallocation_id = page_id
         db.session.add(item)
         db.session.commit()
-    return {'s':'2'}
+    return {'s': '2'}
 
 
 # put  Userpriviledge
@@ -246,6 +246,7 @@ def staff_get_id(id):
         response = jsonify({'message': 'Cannot find any staff'}), 404
     return response
 
+
 @perm_api_blueprint.route('/api/department', methods=['GET'])
 def staff_get():
     data = []
@@ -265,6 +266,44 @@ def getall_pages():
     response = jsonify({'data': items})
     return response
 
+
+@perm_api_blueprint.route('/api/primary-pages', methods=['GET'])
+def get_p_pages():
+    items = dict()
+    item = Pageallocation.query.filter(Pageallocation.status == True).group_by(Pageallocation.psection).with_entities(
+        Pageallocation.psection)
+    for x, row in enumerate(item, start=1):
+        items.update({x: row[0]})
+    response = jsonify(items)
+    return response
+
+@perm_api_blueprint.route('/api/get-priv-pages/<section>/<user_id>', methods=['GET'])
+def get_priv_pages(section, user_id):
+    item = Userpriviledge.query.join(Pageallocation, Pageallocation.id == Userpriviledge.pageallocation_id).join(User, User.id == Userpriviledge.user_id).filter(Pageallocation.psection==section,Pageallocation.status==True,Userpriviledge.user_id==user_id).order_by(Pageallocation.pposition).with_entities(Pageallocation.name, Userpriviledge.status, Userpriviledge.id)
+
+    if item is not None:
+        data = list()
+        for row in item:
+            data.append({'name':row[0], 'status':row[1], 'priv_id':row[2]})
+        response = jsonify(data), 200
+    else:
+        response = jsonify({'message': 'No Subsections'}), 404
+    return response
+
+@perm_api_blueprint.route('/api/get-new-priv/<section>', methods=['GET'])
+def get_new_priv(section):
+    item = Pageallocation.query.outerjoin(Userpriviledge, Pageallocation.id == Userpriviledge.pageallocation_id).filter(Pageallocation.psection==section, Pageallocation.status == True, Userpriviledge.pageallocation_id == None).with_entities(Pageallocation.name, Pageallocation.route, Pageallocation.id)
+
+    if item is not None:
+        data = list()
+        for row in item:
+            data.append({'name': row[0], 'route': row[1], 'page_id': row[2]})
+        response = jsonify(data), 200
+    else:
+        response = jsonify({'message': 'No Subsections'}), 404
+    return response
+
+@perm_api_blueprint.route('/api/set-update-priv', methods=[''])
 
 @perm_api_blueprint.route('/api/get-section-postion/<user_id>', methods=['GET'])
 def get_pages_sections(user_id):
@@ -293,11 +332,13 @@ def get_subsection(user_id, section_id):
         Userpriviledge.user_id == user_id).order_by(Pageallocation.sposition).with_entities(Pageallocation.name,
                                                                                             Userpriviledge.status,
                                                                                             Userpriviledge.id,
-                                                                                            Pageallocation.image, Pageallocation.route)
+                                                                                            Pageallocation.image,
+                                                                                            Pageallocation.route)
     if item is not None:
         data = list()
         for row in item:
-            data.append({'sub_section_name': row[0], 'status': row[1], 'user_priv_id': row[2], 'image': row[3], 'route': row[4]})
+            data.append({'sub_section_name': row[0], 'status': row[1], 'user_priv_id': row[2], 'image': row[3],
+                         'route': row[4]})
         response = jsonify(data), 200
     else:
         response = jsonify({'message': 'Not Sub Section to Find'}), 404
@@ -348,6 +389,7 @@ def branch_get(id):
     else:
         response = jsonify({'message': 'Cannot find branch'}), 404
     return response
+
 
 @perm_api_blueprint.route('/api/delete-branch/<id>', methods=['DELETE'])
 def branch_delete(id):
@@ -400,6 +442,7 @@ def usertype_update(id):
         response = jsonify({'message': 'Cannot find branch'}), 404
     return response
 
+
 # //staffcode fullname email phone username password department branch address1 address2 address3 postalcode city country
 @perm_api_blueprint.route('/api/staff/create', methods=['POST'])
 def staff_registration():
@@ -421,7 +464,6 @@ def staff_registration():
     mobile = request.form['mobile']
     email = request.form['email']
 
-
     item = Staff()
     item.code = code
     item.department_id = department
@@ -432,8 +474,7 @@ def staff_registration():
     db.session.add(item)
     db.session.commit()
 
-
-    #User Address
+    # User Address
     item_add = Useraddress()
     item_add.address1 = address1
     item_add.address2 = address2
@@ -447,7 +488,7 @@ def staff_registration():
     result = item_add.to_json()
     insert_addr_id = result.get('id')
 
-    #UserForm
+    # UserForm
     item_user = User()
     item_user.username = username
     item_user.email = email
@@ -467,6 +508,7 @@ def staff_registration():
     set_privilege(result.get('id'))
     return response
 
+
 @perm_api_blueprint.route('/api/staff/get-staff', methods=['GET'])
 def getall_staff():
     items = list()
@@ -475,6 +517,7 @@ def getall_staff():
 
     response = jsonify({'results': items})
     return response
+
 
 @perm_api_blueprint.route('/api/staff/get-staff/<id>', methods=['GET'])
 def staff_get_id2(id):
@@ -485,6 +528,7 @@ def staff_get_id2(id):
     else:
         response = jsonify({'message': 'Cannot find any staff'}), 404
     return response
+
 
 @perm_api_blueprint.route('/api/staff/update-staff/<id>', methods=['PUT'])
 def staff_put_id(id):
@@ -499,14 +543,15 @@ def staff_put_id(id):
         response = jsonify({'message': 'Cannot find any staff'}), 404
     return response
 
+
 @perm_api_blueprint.route('/api/staff/delete-staff/<id>', methods=['DELETE'])
 def staff_delete(id):
     item = Staff.query.filter_by(id=id).first()
     if item is not None:
         db.session.delete(item)
         db.session.commit()
-        #response= jsonify(item.to_delete)
-        response = jsonify({'message':'Successfully deleted'})
+        # response= jsonify(item.to_delete)
+        response = jsonify({'message': 'Successfully deleted'})
     else:
         response = jsonify({'message': 'Cannot find branch'}), 404
     return response
@@ -517,17 +562,11 @@ def gen_staff_code():
     item = Staff.query.order_by(Staff.id.desc()).first()
     if item is not None:
         data = item.to_json()
-        code = '000'+str(data.get('id')+1)
+        code = '000' + str(data.get('id') + 1)
         return jsonify({'code': code})
     else:
         code = '0001'
         return jsonify({'code': code})
-
-
-################################################################################
-# Student registration Post and get method
-
-
 @perm_api_blueprint.route('/api/student/registration/', methods=['POST'])
 def Student_registration():
     name = request.form['name']
