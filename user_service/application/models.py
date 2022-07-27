@@ -218,3 +218,147 @@ class Staff(db.Model):
             'department_id': self.department_id,
             'username': self.username
         }
+
+class Studentregistration(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(100), unique=False, nullable=False)
+    code = db.Column(db.String(100), unique=True, nullable=False)
+    roll_number = db.Column(db.String(100), unique=True, nullable=False)
+    student_address = db.Column(db.String(100), unique=False, nullable=False)
+    gender = db.Column(db.String(15), unique=False, nullable=False)
+    date_of_birth = db.Column(db.DateTime, nullable=False)
+    parent_name = db.Column(db.String(100), unique=False, nullable=False)
+    parent_address = db.Column(db.String(100), unique=False, nullable=False)
+    parent_mobile_number = db.Column(db.String(15), unique=False, nullable=False)
+    parent_landline = db.Column(db.String(15), unique=False, nullable=False)
+    parent_email = db.Column(db.String(30), unique=False, nullable=True)
+    old_school_name = db.Column(db.String(30), unique=False, nullable=False)
+    old_school_grade = db.Column(db.String(100), unique=False, nullable=False)
+    old_school_joined = db.Column(db.DateTime, unique=False, nullable=False)
+    old_school_left = db.Column(db.DateTime, unique=False, nullable=False)
+    datetime = db.Column(db.DateTime, unique=False, nullable=False)
+    active = db.Column(db.Boolean, default=True, unique=False, nullable=False)
+    grade = db.Column(db.Integer, unique=False, nullable=False)
+    join_date = db.Column(db.DateTime, unique=False, nullable=False)
+    blood_group = db.Column(db.String(100), unique=False, nullable=False)
+    nationality = db.Column(db.String(100), unique=False, nullable=False)
+    student_email = db.Column(db.String(100), unique=False, nullable=False)
+    studentattendances = db.relationship('Studentattendance', uselist=False, backref="studentregistration")
+    studentfee = db.relationship('Studentfee', uselist=False, backref="studentregistration")
+
+    def __repr__(self):
+        return '<id {}>'.format(self.id)
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'code': self.code,
+            'roll_number': self.roll_number,
+            'student_address': self.student_address,
+            'gender': self.gender,
+            'date_of_birth': self.date_of_birth,
+            'parent_name': self.parent_name,
+            'parent_address': self.parent_address,
+            'parent_mobile_number': self.parent_mobile_number,
+            'parent_landline': self.parent_landline,
+            'parent_email': self.parent_email,
+            'old_school_name': self.old_school_name,
+            'old_school_grade': self.old_school_grade,
+            'old_school_joined': self.old_school_joined,
+            'old_school_left': self.old_school_left,
+            'datetime': self.datetime,
+            'active': self.active,
+            'grade': self.grade,
+            'join_date': self.join_date,
+            'blood_group': self.blood_group,
+            'nationality': self.nationality,
+            'student_email': self.student_email
+        }
+
+
+class Studentattendance(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    student_code = db.Column(db.String(100), unique=False, nullable=False)
+    student_name = db.Column(db.String(100), unique=False, nullable=False)
+    date = db.Column(db.DateTime, unique=False, nullable=False)
+    day = db.Column(db.String(100), unique=False, nullable=False)
+    month = db.Column(db.String(100), unique=False, nullable=False)
+    year = db.Column(db.String(100), unique=False, nullable=False)
+    attendance = db.Column(db.String(100), unique=False, nullable=False)
+    remarks = db.Column(db.String(100), unique=False, nullable=False)
+    status = db.Column(db.Boolean, default=True, unique=False, nullable=False)
+    grade = db.Column(db.Integer, unique=False, nullable=False)
+    student_id = db.Column(db.Integer, db.ForeignKey('studentregistration.id'), nullable=False)
+
+    def __repr__(self):
+        return '<id {}>'.format(self.id)
+
+    def to_json(self):
+
+        return {
+            'id': self.id,
+            'student_code': self.student_code,
+            'student_name': self.student_name,
+            'student_id': self.student_id,
+            'date': self.date,
+            'day': self.day,
+            'month': self.month,
+            'year': self.year,
+            'attendance': self.attendance,
+            'remarks': self.remarks,
+            'status': self.status,
+            'grade': self.grade
+        }
+
+
+class Studentfee(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    fee_type_id = db.Column(db.String(100), unique=True, nullable=False)
+    student_name = db.Column(db.String(100), unique=False, nullable=False)
+    pay_date = db.Column(db.DateTime,  nullable=False)
+    actual_amount = db.Column(db.FLOAT, unique=False, nullable=False)
+    pay_amount = db.Column(db.FLOAT, unique=False, nullable=False)
+    balance_amount = db.Column(db.FLOAT, unique=False, nullable=False)
+    total_amount = db.Column(db.FLOAT, unique=False, nullable=False)
+    fine = db.Column(db.FLOAT, unique=False, nullable=False)
+    prefix = db.Column(db.String(100), unique=False, nullable=False)
+    individual_receipt = db.Column(db.String(100), unique=False, nullable=False)
+    receipt_number = db.Column(db.String(100), unique=False, nullable=False)
+    mode_of_pay = db.Column(db.String(100), unique=False, nullable=False)
+    bank = db.Column(db.String(100), nullable=False)
+    cheque_number = db.Column(db.String(100), unique=True, nullable=False)
+    cheque_date = db.Column(db.DateTime, nullable=False)
+
+    remark = db.Column(db.String(100), unique=True, nullable=False)
+
+    status = db.Column(db.Boolean, unique=False, nullable=False)
+    active = db.Column(db.Boolean, unique=False, nullable=False)
+    student_id = db.Column(db.Integer, db.ForeignKey('studentregistration.id'), nullable=False)
+
+    def __repr__(self):
+        return '<id {}>'.format(self.id)
+
+    def to_json(self):
+        return {
+            'id':self.id,
+            'student_id': self.student_id,
+            'fee_type_id': self.fee_type_id,
+            'student_name': self.student_name,
+            'pay_date': self.pay_date,
+            'actual_amount': self.actual_amount,
+            'pay_amount': self.pay_amount,
+            'balance_amount': self.balance_amount,
+            'total_amount': self.total_amount,
+            'fine': self.fine,
+            'prefix': self.prefix,
+            'individual_receipt': self.individual_receipt,
+            'receipt_number': self.receipt_number,
+            'mode_of_pay': self.mode_of_pay,
+            'bank': self.bank,
+            'cheque_number': self.cheque_number,
+            'cheque_date': self.cheque_date,
+            'remark': self.remark,
+            'status': self.status,
+            'active': self.active
+        }
