@@ -31,3 +31,28 @@ class BranchForm(FlaskForm):
 class RolesForm(FlaskForm):
     rolename = StringField('rolename', validators=[DataRequired()])
     submit = SubmitField('submitReg')
+
+class DepartmentForm(FlaskForm):
+    dname = StringField('dname', validators=[DataRequired()])
+    submit = SubmitField('submitReg')
+
+
+class StaffForm(FlaskForm):
+    staffcode = StringField('staffcode', validators=[DataRequired()])
+    firstname = StringField('firstname', validators=[DataRequired()])
+    lastname = StringField('lastname', validators=[DataRequired()])
+    email = StringField('email', validators=[DataRequired()])
+    gender = StringField('gender', validators=[DataRequired()])
+    dob = StringField('dob', validators=[DataRequired()])
+    username = StringField('username', validators=[DataRequired()])
+    password = StringField('password', validators=[DataRequired()])
+    phone = StringField('phone', validators=[DataRequired()])
+    department = StringField('department', validators=[DataRequired()])
+    branch = StringField('branch', validators=[DataRequired()])
+    address1 = StringField('address1', validators=[DataRequired()])
+    address2 = StringField('address2', validators=[DataRequired()])
+    address3 = StringField('address3', validators=[DataRequired()])
+    postalcode = StringField('postalcode', validators=[DataRequired()])
+    city = StringField('city', validators=[DataRequired()])
+    country = StringField('country', validators=[DataRequired()])
+    submit = SubmitField('submitReg')
