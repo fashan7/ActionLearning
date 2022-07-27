@@ -179,6 +179,12 @@ def process_load_privledge(user_id):
 def get_page_priviledge():
     pages = PrivilegeClient.get_primary_section()
     user_id = request.form['user']
+    if 'id' in request.form:
+        id = request.form['id']
+        sign = request.form['sign']
+        PrivilegeClient.update_page(id, sign)
+
     response = process_load_privledge(user_id)
 
-    return render_template('user/sub_load_pirv_page.html', pages=response)
+    return render_template('user/sub_load_pirv_page.html', pages=response, user_id=user_id)
+
