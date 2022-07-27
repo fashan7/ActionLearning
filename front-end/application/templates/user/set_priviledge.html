@@ -95,5 +95,37 @@ $(document).ready(function (){
             });
     });
 });
+function fillSpan(id) {
+	if (document.getElementById('changeCon'+id).checked) {
+		document.getElementById('viewCon'+id).innerHTML = '(Yes)';
+	}
+	else {
+		document.getElementById('viewCon'+id).innerHTML = '(No)';
+	}
+}
+
+function getUserPrivileges(id) {
+	if (document.getElementById('userid').value != '') {
+		if (document.getElementById('changeCon'+id).checked) {
+			sign = "True";
+		}
+		else {
+			sign = "False";
+		}
+
+
+        var user = $("#users").val();
+        $.post("/get-page-priv", {
+			user:user,
+            id:id,
+            sign:sign
+		},
+		function(data,status) {
+			$("#loadAllDetailsPrivilage").empty();
+			$("#loadAllDetailsPrivilage").append(data);
+		});
+	}
+}
+
 </script>
 {% endblock %}

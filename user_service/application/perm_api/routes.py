@@ -569,7 +569,7 @@ def Student_registration():
     item_add.old_school_joined = old_school_joined
     item_add.old_school_left = old_school_left
     item_add.datetime = datetime
-    if active is 'True' or 'true':
+    if 'True' or 'true' in active:
         item_add.active = True
     else:
         item_add.active = False
@@ -660,7 +660,7 @@ def student_delet(id):
     item = Studentregistration.query.filter_by(id=id).first()
     if item is not None:
         active = request.form['active']
-        if active is 'false' or 'False':
+        if 'false' or 'False' in active:
             item.active = False
         db.session.add(item)
         db.session.commit()
@@ -711,7 +711,7 @@ def get_attendance(std_code):
     item.year = year
     item.attendance = attendance
     item.remarks = remarks
-    if status is 'false' or 'False':
+    if 'false' or 'False' in status:
         item.status = False
     item.grade = grade
     item.student_id = student_id
@@ -756,7 +756,7 @@ def student_put(id):
         item.year = year
         item.attendance = attendance
         item.remarks = remarks
-        if status is 'false' or 'False':
+        if 'false' or 'False' in status:
             item.status = False
         item.grade = grade
         # item.student_id = student_id
@@ -811,7 +811,7 @@ def Student_fee():
     item.cheque_number = cheque_number
     item.cheque_date = cheque_date
     item.remark = remark
-    if status is 'True' or 'true':
+    if 'True' or 'true' in status:
         item.status = True
     else:
         item.status = False
@@ -880,11 +880,11 @@ def put_details(id):
         item.cheque_number = cheque_number
         item.cheque_date = cheque_date
         item.remark = remark
-        if status is 'True' or 'true':
+        if 'true' or 'True' in status:
             item.status = True
         else:
             item.status = False
-        if active is 'false' or 'False':
+        if 'false' or 'False' in active:
             item.active = False
         else:
             item.active = True
@@ -903,7 +903,7 @@ def student_deletf(id):
     item = Studentfee.query.filter_by(id=id).first()
     if item is not None:
         active = request.form['active']
-        if active is 'false' or 'False':
+        if 'false' or 'False' in active:
             item.active = False
         db.session.add(item)
         db.session.commit()
@@ -1455,3 +1455,15 @@ def register_priv( page_id):
         db.session.commit()
     return jsonify({'message': 'Successfully inserted'}), 200
 
+
+@perm_api_blueprint.route('/api/update-priv/<id>/<status>', methods=['GET'])
+def update_priv(id, status):
+    if 'False' in status or 'false' in status:
+        status = False
+    else:
+        status = True
+
+    item = Userpriviledge.query.filter_by(id=id).first()
+    item.status = status
+    db.session.commit()
+    return jsonify({'message': 'Updated Successfully'}), 200
