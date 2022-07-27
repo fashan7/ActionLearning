@@ -29,7 +29,7 @@ class User(UserMixin, db.Model):
     last_name = db.Column(db.String(255), unique=False, nullable=False)
     password = db.Column(db.String(255), unique=False, nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
-    authenticated = db.Column(db.Boolean, default=False)
+    status = db.Column(db.Boolean, default=True)
     api_key = db.Column(db.String(255), unique=True, nullable=True)
     date_reg = db.Column(db.DateTime, default=dt.datetime.utcnow, nullable=False)
     address_id = db.Column(db.Integer, db.ForeignKey('useraddress.id'), nullable=False)

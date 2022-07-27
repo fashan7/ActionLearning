@@ -158,12 +158,21 @@ def set_priv():
 
 def process_load_privledge(user_id):
     pages = PrivilegeClient.get_primary_section()
+
+    for key, value in pages.items():
+        section_name = value
+        data_not_set = PrivilegeClient.get_new_pages_not_set(section_name)
+        if data_not_set:
+            for row in data_not_set:
+                page_id = row.get('page_id')
+                PrivilegeClient.post_insert_priv(page_id)
+
     form_dict = dict()
     for key, value in pages.items():
         section_name = value
         data = PrivilegeClient.get_priv_pages(section_name, user_id)
-        data_not_set = PrivilegeClient.get_new_pages_not_set(section_name)
-        form_dict.update({section_name:[data,data_not_set]})
+        form_dict.update({section_name: data})
+
     return form_dict
 
 @frontend_blueprint.route('/get-page-priv', methods=['POST'])
@@ -171,6 +180,5 @@ def get_page_priviledge():
     pages = PrivilegeClient.get_primary_section()
     user_id = request.form['user']
     response = process_load_privledge(user_id)
-
 
     return render_template('user/sub_load_pirv_page.html', pages=response)

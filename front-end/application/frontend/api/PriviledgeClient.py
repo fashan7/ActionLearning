@@ -27,3 +27,9 @@ class PrivilegeClient:
     def get_new_pages_not_set(section):
         r = requests.get(f'http://127.0.0.1:5002/api/get-new-priv/{section}')
         return r.json()
+
+
+    @staticmethod
+    def post_insert_priv(page_id):
+        r = requests.get(f'http://127.0.0.1:5002/api/register-priv/{page_id}')
+        return r.json()
