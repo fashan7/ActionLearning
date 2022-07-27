@@ -1,6 +1,6 @@
 from . import perm_api_blueprint
 from .. import db, login_manager
-from ..models import Roles, User, Pageallocation, Userpriviledge, Branch, Useraddress, Staffstructure, Staff
+from ..models import Roles, User, Pageallocation, Userpriviledge, Branch, Useraddress, Staffstructure, Staff, Studentregistration, Studentattendance, Studentfee
 from flask import make_response, request, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
 
@@ -567,6 +567,8 @@ def gen_staff_code():
     else:
         code = '0001'
         return jsonify({'code': code})
+
+
 @perm_api_blueprint.route('/api/student/registration/', methods=['POST'])
 def Student_registration():
     name = request.form['name']
