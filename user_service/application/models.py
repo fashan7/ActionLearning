@@ -226,7 +226,7 @@ class Studentregistration(db.Model):
     roll_number = db.Column(db.String(100), unique=True, nullable=False)
     student_address = db.Column(db.String(100), unique=False, nullable=False)
     gender = db.Column(db.String(15), unique=False, nullable=False)
-    date_of_birth = db.Column(db.DateTime, nullable=False)
+    date_of_birth = db.Column(db.String(20), unique=False, nullable=False)
     parent_name = db.Column(db.String(100), unique=False, nullable=False)
     parent_address = db.Column(db.String(100), unique=False, nullable=False)
     parent_mobile_number = db.Column(db.String(15), unique=False, nullable=False)
@@ -234,20 +234,24 @@ class Studentregistration(db.Model):
     parent_email = db.Column(db.String(30), unique=False, nullable=True)
     old_school_name = db.Column(db.String(30), unique=False, nullable=False)
     old_school_grade = db.Column(db.String(100), unique=False, nullable=False)
-    old_school_joined = db.Column(db.DateTime, unique=False, nullable=False)
-    old_school_left = db.Column(db.DateTime, unique=False, nullable=False)
-    datetime = db.Column(db.DateTime, unique=False, nullable=False)
+    old_school_joined = db.Column(db.String(100), unique=False, nullable=False)
+    old_school_left = db.Column(db.String(100), unique=False, nullable=False)
+    datetime = db.Column(db.String(100), unique=False, nullable=False)
     active = db.Column(db.Boolean, default=True, unique=False, nullable=False)
     grade = db.Column(db.Integer, unique=False, nullable=False)
-    join_date = db.Column(db.DateTime, unique=False, nullable=False)
+    join_date = db.Column(db.String(100), unique=False, nullable=False)
     blood_group = db.Column(db.String(100), unique=False, nullable=False)
     nationality = db.Column(db.String(100), unique=False, nullable=False)
     student_email = db.Column(db.String(100), unique=False, nullable=False)
-    studentattendances = db.relationship('Studentattendance', uselist=False, backref="studentregistration")
-    studentfee = db.relationship('Studentfee', uselist=False, backref="studentregistration")
+   # studentattendances = db.relationship('Studentattendance', uselist=False, backref="studentregistration")
+    exam_book = db.relationship('Exambooking', uselist=False, backref="studentregistration")
+    exam_result = db.relationship('Examresults', uselist=False, backref="studentregistration")
+
+
 
     def __repr__(self):
         return '<id {}>'.format(self.id)
+
 
     def to_json(self):
         return {
@@ -361,4 +365,123 @@ class Studentfee(db.Model):
             'remark': self.remark,
             'status': self.status,
             'active': self.active
+        }
+
+class Paper_creation(db.Model):
+    paper_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    subject_id =  db.Column(db.Integer, db.ForeignKey('subjects.id'), nullable=False)
+    duration = db.Column(db.Integer, nullable=False)
+    no_of_questions = db.Column(db.Integer, nullable=False)
+    paper_no=  db.Column(db.String(100), unique=False, nullable=False)
+    status = db.Column(db.Boolean, default=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('studentregistration.id'), nullable=False)
+    que_fk = db.relationship('Questions', uselist=False, backref="paper_creation")
+
+    def __repr__(self):
+        return '<paper_id {}>'.format(self.paper_id)
+
+    def to_json(self):
+        return {
+
+            'paper_id': self.paper_id,
+            'subject_id': self.subject_id,
+            'duration': self.duration,
+            'no_of_question': self.no_of_questions,
+            'paper_no': self.paper_no,
+            'status': self.status,
+            'user_id': self.user_id
+        }
+
+
+class Questions(db.Model):
+    question_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    paper_id = db.Column(db.Integer, db.ForeignKey('paper_creation.paper_id'), nullable=False)
+    question = db.Column(db.Text())
+    question_order = db.Column(db.Integer, default=True)
+    points = db.Column(db.Float, unique=False, nullable=False)
+    correct_ans = db.Column(db.Integer, default=True)
+    status = db.Column(db.Boolean, default=True)
+    ansfk = db.relationship('Answers', uselist=False, backref='questions')
+    def __repr__(self):
+        return '<question_id {}>'.format(self.question_id)
+
+    def to_json(self):
+        return {
+
+            'question_id': self.question_id,
+            'paper_id': self.paper_id,
+            'question': self.question,
+            'question_order': self.question_order,
+            'points': self.points,
+            'correct_ans': self.correct_ans,
+            'status': self.status
+        }
+
+class Answers(db.Model):
+    answer_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    question_id = db.Column(db.Integer, db.ForeignKey('questions.question_id'), nullable=False)
+    answer = db.Column(db.Text())
+    answer_order = db.Column(db.Integer, default=True)
+    status = db.Column(db.Boolean, default=True)
+
+    def __repr__(self):
+        return '<answer_id {}>'.format(self.answer_id)
+
+    def to_json(self):
+        return {
+
+            'answer_id': self.answer_id,
+            'question_id': self.question_id,
+            'answer': self.answer,
+            'answer_order': self.answer_order,
+            'status': self.status
+        }
+
+class Exambooking(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    exam_id = db.Column(db.String, unique= True,default=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('studentregistration.id'), nullable=False)
+    subject_id = db.Column(db.Integer, db.ForeignKey('subjects.id'), nullable=False)
+    exam_date = db.Column( db.Date, nullable=False)
+    start_time = db.Column(db.Time,nullable = False)
+    end_time = db.Column(db.Time,nullable = False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    subfk = db.relationship('Examresults', uselist=False, backref="exambooking")
+    #subfkk = db.relationship('Examresults', uselist=False, backref="Exam_booking")
+
+    def __repr__(self):
+        return '<id {}>'.format(self.id)
+
+    def to_json(self):
+        return {
+
+            'id': self.id,
+            'exam_id': self.exam_id,
+            'student_id': self.student_id,
+            'subject_id': self.subject_id,
+            'exam_date': self.exam_date,
+            'user_id':self.user_id
+        }
+
+
+class Examresults(db.Model):
+    student_id = db.Column(db.Integer, db.ForeignKey('studentregistration.id'), nullable=False)
+    exam_id = db.Column(db.String, db.ForeignKey('exambooking.exam_id'), nullable=False)
+    exam_log = db.Column(db.Text())
+    results = db.Column(db.String(100), unique=False, nullable=False)
+    marks = db.Column(db.Float, unique=False, nullable= False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    def __repr__(self):
+        return '<id {}>'.format(self.id)
+
+    def to_json(self):
+        return {
+
+            'student_id': self.student_id,
+            'exam_id': self.exam_id,
+            'exam_log': self.exam_log,
+            'result': self.results,
+            'marks':self.marks,
+            'id': self.id
         }
