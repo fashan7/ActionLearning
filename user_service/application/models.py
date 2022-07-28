@@ -4,6 +4,17 @@ from datetime import datetime
 from flask_login import UserMixin
 from passlib.hash import sha256_crypt
 
+import math
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import re
+import nltk
+from nltk.corpus import stopwords
+from nltk.stem.porter import PorterStemmer
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import GaussianNB
+
 
 class Roles(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -480,3 +491,131 @@ class Examresults(db.Model):
             'marks': self.marks,
             'id': self.id
         }
+
+
+class Recommendation(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    recommendation = db.Column(db.String(255), unique=False, nullable=True)
+    output = db.Column(db.String(255), unique=False, nullable=True)
+
+    def __repr__(self):
+        return '<id %r>' % (self.id)
+
+    def to_json(self):
+        return {
+            'recommendation': self.recommendation,
+            'output': self.output
+
+        }
+
+class Feedback(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    feedback = db.Column(db.String(255), unique=False, nullable=True)
+    output = db.Column(db.String(255), unique=False, nullable=True)
+
+    def __repr__(self):
+        return '<id %r>' % (self.id)
+
+    def to_json(self):
+        return {
+            'feedback': self.feedback,
+            'output': self.output
+
+        }
+
+
+
+class MultinomialNB:
+    def __init__(self, articles_per_tag):
+        self.alpha = 1
+        self.priors_per_tag = {}
+        self.likelyhood_per_word_per_tag = {}
+        self.articles_per_tag = articles_per_tag
+        self.tags = articles_per_tag.keys()
+        self.train()
+
+    def train(self):
+
+        tag_counts_map = {tag: len(self.articles_per_tag[tag]) for tag in self.tags}  ### number of lists per tag
+
+        self.priors_per_tag = {tag: tag_counts_map[tag] / sum(tag_counts_map.values()) for tag in
+                               self.tags}  ## prob of lists globally
+
+        self.likelyhood_per_word_per_tag = self.alternativeFunction()
+
+    def predict(self, article):
+
+        prob_per_tag = {tag: math.log(prior) for tag, prior in self.priors_per_tag.items()}
+
+        for word in article:
+
+            for tag in self.tags:
+
+                if word in self.likelyhood_per_word_per_tag.keys():
+                    prob_per_tag[tag] = prob_per_tag[tag] + math.log(self.likelyhood_per_word_per_tag[word][tag])
+
+        return prob_per_tag
+
+    ##############################################################################################################
+
+    def alternativeFunction(self):
+
+        wordFreq_perTag = {}
+
+        totalWordsPerTag = {}
+
+        for tag in self.tags:
+
+            totalWordsPerTag[tag] = 0
+
+            countVar = 0
+
+            for article in self.articles_per_tag[tag]:
+
+                for word in article:
+
+                    countVar = countVar + 1
+
+                    if word not in wordFreq_perTag.keys():
+
+                        wordFreq_perTag[word] = {}
+
+                        wordFreq_perTag[word][tag] = 1;
+
+                    else:
+
+                        if tag in wordFreq_perTag[word].keys():
+
+                            wordFreq_perTag[word][tag] = wordFreq_perTag[word][tag] + 1;
+                        else:
+                            wordFreq_perTag[word][tag] = 1;
+
+            totalWordsPerTag[tag] = countVar
+
+        for val in wordFreq_perTag.keys():
+
+            for tag in self.tags:
+
+                if tag in wordFreq_perTag[val].keys():
+
+                    wordFreq_perTag[val][tag] = (wordFreq_perTag[val][tag] + 1) / (totalWordsPerTag[tag] + 2)
+
+                else:
+
+                    wordFreq_perTag[val][tag] = 1 / (totalWordsPerTag[tag] + 2)
+
+        return wordFreq_perTag
+
+class NLP:
+
+    def commonFunc(ipStr):
+        review = re.sub('[^a-zA-Z]', ' ', ipStr)
+        review = review.lower()
+        review = review.split()
+        ps = PorterStemmer()
+        all_stopwords = stopwords.words('english')
+        all_stopwords.remove('not')
+        review = [ps.stem(word) for word in review if not word in set(all_stopwords)]
+        review = ' '.join(review)
+
+        return review

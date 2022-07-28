@@ -2,11 +2,22 @@ from . import perm_api_blueprint
 from .. import db, login_manager
 from ..models import Roles, User, Pageallocation, Userpriviledge, Branch, Useraddress, Staffstructure, Staff, \
     Studentregistration, Studentattendance, Studentfee, Paper_creation, Questions, Answers, Examresults, Exambooking, \
-    Course, Subjects
+    Course, Subjects, Recommendation ,Feedback,MultinomialNB,NLP
 from flask import make_response, request, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
 
 from passlib.hash import sha256_crypt
+from collections import defaultdict
+import math
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import re
+import nltk
+from nltk.corpus import stopwords
+from nltk.stem.porter import PorterStemmer
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import GaussianNB
 
 """
 use to reload the user object from the userid stored in session
@@ -1549,4 +1560,145 @@ def question_create():
     db.session.commit()
 
     response = jsonify({'message': 'Question created', 'questions': item.to_json()})
+    return response
+
+
+@perm_api_blueprint.route('/api/student-recommendation/recommendation', methods=['POST'])
+def recommendation():
+
+    recommendation = request.form['recommendation']
+
+    item = Recommendation()
+
+
+    tags_In_Articles = {'AIS': [
+
+        ['MATH', 'ALGORITHM', 'EQUATIONS', 'DATA'],
+
+        ['MATH', 'IMAGEPROCESSING', 'ALGORITHM']
+
+    ],
+
+        'SE': [
+
+            ['API', 'WEB', 'SOFTWARE','DEVOPS'],
+
+            ['API', 'DEVELOPEMENT', 'WEB' , 'UNIX']
+
+        ],
+
+        'DSA': [
+
+            ['DATA', 'GRAPH', 'VISUALIZATION', 'API'],
+
+            ['DATA', 'VISUALIZATION']
+
+        ],
+        'AIMS': [
+
+            ['DATA', 'MANAGEMENT', 'BUISINESS'],
+
+            ['MANAGEMENT', 'ALGORITHM']
+
+        ],
+        'ISM': [
+
+            ['PROJECT', 'MANAGEMENT', 'AGILE'],
+
+            ['AGILE', 'MANAGEMENT', 'BUISINESS']
+
+        ],
+        'CS': [
+
+            ['SECURITY', 'UNIX', 'HACKING', 'HACK'],
+
+            ['SECURITY', 'UNIX', 'HACK']
+
+        ]
+
+    }
+
+    article = recommendation.split()
+
+    article = [x.upper() for x in article]
+
+    NBClass = MultinomialNB(tags_In_Articles)
+
+    OPPrediction = NBClass.predict(article)
+
+    maxVal = -100000000000000000000000
+
+    opSub = ''
+
+    for key in OPPrediction.keys():
+
+        if OPPrediction[key] > maxVal:
+            opSub = key
+            maxVal = OPPrediction[key]
+
+    #OPPrediction = {k: v for k, v in sorted(OPPrediction.items(), key=lambda item: item[1])}
+
+    #dict(sorted(OPPrediction.items(), key=lambda item: item[1]))
+    #OPPrediction = sorted(OPPrediction.items(), key=lambda x: x[1])
+
+    #response = jsonify({'message': list(OPPrediction.keys())[0]})
+
+    item.recommendation = recommendation
+    item.output = opSub
+    db.session.add(item)
+    db.session.commit()
+
+    response = jsonify({'message': opSub})
+
+    return response
+
+
+
+@perm_api_blueprint.route('/api/student-recommendation/feedback', methods=['POST'])
+def feedback():
+
+    feedback = request.form['feedback']
+    dataset = pd.read_excel("C:/Users/thosh/PycharmProjects/ActionLearning/user_service/resource/DataSet_NLP.xlsx")
+    nltk.download('stopwords')
+    ###################################################################################
+    corpus = []
+    corpus2 = []
+    for i in range(0, 11):
+        corpus.append(NLP.commonFunc(dataset['Experience'][i]))
+    print(corpus)
+    ##############################################################################
+    #testing = 'Teachers were good'
+    stopwordsRemoved = NLP.commonFunc(feedback)
+    corpus2.append(stopwordsRemoved)
+    ##############################################################################
+    cv = CountVectorizer(max_features=1500)
+    X = cv.fit_transform(corpus).toarray()
+    y = dataset.iloc[:, -1].values
+    toTest = cv.transform(corpus2).toarray()
+
+    classifier = GaussianNB()
+    classifier.fit(X, y)
+    y_pred = classifier.predict(toTest)
+
+    item = Feedback()
+    item.feedback = stopwordsRemoved
+    item.output = int(y_pred[0])
+    db.session.add(item)
+    db.session.commit()
+
+    response = jsonify({'message': int(y_pred[0])})
+
+    return response
+
+
+@perm_api_blueprint.route('/api/student-recommendation/get-report/<op>', methods=['GET'])
+def getall_report(op):
+    item = Feedback.query.filter(Feedback.output == op ).all()
+    if item is not None:
+        items = list()
+        for row in item:
+            items.append(row.to_json())
+        response = jsonify({'data': items})
+    else:
+        response = jsonify({'message': 'Cannot find Sub Section'}), 404
     return response
