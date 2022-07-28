@@ -400,7 +400,6 @@ def branch_get(id):
     return response
 
 
-# //staffcode fullname email phone username password department branch address1 address2 address3 postalcode city country
 @perm_api_blueprint.route('/api/staff/create', methods=['POST'])
 def staff_registration():
     code = request.form['staffcode']
@@ -975,13 +974,10 @@ def branch_put(id):
 def course_create():
     course_name = request.form['course_name']
     course_semester = request.form['course_semester']
-    # status = request.form['status']
-    # id = request.form['id']
+
     item = Course()
     item.course_name = course_name
     item.course_semester = course_semester
-    # item.status = status
-    # item.id = id
 
     db.session.add(item)
     db.session.commit()
@@ -1020,13 +1016,13 @@ def course_get(id):
 
 
 # getall
-@perm_api_blueprint.route('/api/course/getall', methods=['GET'])
+@perm_api_blueprint.route('/api/get-courses', methods=['GET'])
 def getall_course():
     items = list()
     for row in Course.query.all():
         items.append(row.to_json())
 
-    response = jsonify({'results': items})
+    response = jsonify(items)
     return response
 
 
@@ -1046,17 +1042,14 @@ def delete_course(id):
 
 #########################################################################################################################
 # subjects
-@perm_api_blueprint.route('/api/create/subj', methods=['Post'])
+@perm_api_blueprint.route('/api/subject-create', methods=['Post'])
 def subject_create():
     name = request.form['name']
     course_id = request.form['course_id']
-    # status = request.form['status']
-    # id = request.form['id']
+
     item = Subjects()
     item.name = name
     item.course_id = course_id
-    # item.status = status
-    # item.id = id
 
     db.session.add(item)
     db.session.commit()
@@ -1093,13 +1086,13 @@ def subject_get(id):
     return response
 
 
-@perm_api_blueprint.route('/api/getall', methods=['GET'])
+@perm_api_blueprint.route('/api/get-subjects', methods=['GET'])
 def subject_all():
     items = list()
-    for row in Subjects.query.all():
-        items.append(row.to_json())
+    for row in Subjects.query.join(Course, Course.id == Subjects.course_id).with_entities(Course.course_name, Subjects.id, Subjects.name):
+        items.append({'course_name':row[0],'subject_name':row[2],'subject_id':row[1]})
 
-    response = jsonify({'results': items})
+    response = jsonify(items)
     return response
 
 
@@ -1109,7 +1102,6 @@ def subject_delete():
     if item is not None:
         db.session.delete(item)
         db.session.commit()
-        # response= jsonify(item.to_delete)
         response = jsonify({'message': 'Successfully deleted'})
     else:
         response = jsonify({'message': 'Cannot find subject'}), 404
@@ -1120,22 +1112,18 @@ def subject_delete():
 # paper-creation
 @perm_api_blueprint.route('/api/paper-create', methods=['Post'])
 def paper_create():
-    paper_id = request.form['paper_id']
     subject_id = request.form['subject_id']
     duration = request.form['duration']
     no_of_questions = request.form['no_of_questions']
     paper_no = request.form['paper_no']
-    # status = request.form['status']
     user_id = request.form['user_id']
 
     item = Paper_creation()
 
-    item.paper_id = paper_id
     item.subject_id = subject_id
     item.duration = duration
     item.no_of_questions = no_of_questions
     item.paper_no = paper_no
-    # item.status=status
     item.user_id = user_id
 
     db.session.add(item)
@@ -1467,3 +1455,15 @@ def update_priv(id, status):
     item.status = status
     db.session.commit()
     return jsonify({'message': 'Updated Successfully'}), 200
+
+
+@perm_api_blueprint.route('/api/gen-paper-code', methods=['GET'])
+def gen_paper_code():
+    item = Paper_creation.query.order_by(Paper_creation.paper_id.desc()).first()
+    if item is not None:
+        data = item.to_json()
+        code = '000' + str(data.get('paper_id') + 1)
+        return jsonify({'code': code})
+    else:
+        code = '0001'
+        return jsonify({'code': code})

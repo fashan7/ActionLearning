@@ -4,6 +4,7 @@ from . import frontend_blueprint
 from .api.PriviledgeClient import PrivilegeClient
 from .api.UserClient import UserClient
 from .api.StaffClient import StaffClient
+from .api.StudiesClient import StudiesClient
 from .. import login_manager
 
 from flask import render_template, session, redirect, url_for, flash, request, jsonify
@@ -122,7 +123,7 @@ def department_reg():
         response_result = StaffClient.department_reg(form)
         return jsonify({'status': response_result.status_code})
 
-    return render_template('staff/department.html', sections=nav_data)\
+    return render_template('staff/department.html', sections=nav_data)
 
 
 @frontend_blueprint.route('/staff-register', methods=['GET','POST'])
@@ -188,3 +189,64 @@ def get_page_priviledge():
 
     return render_template('user/sub_load_pirv_page.html', pages=response, user_id=user_id)
 
+@frontend_blueprint.route('/course-reg', methods=['GET','POST'])
+def course_reg():
+    if not session.get('user'):
+        return redirect(url_for('frontend.login'))
+
+    user_id = session['user'].get('id')
+    nav_data = navigation_data(user_id)
+
+    form = forms.CourseForm()
+    if request.method == "POST":
+        response_result = StudiesClient.course_reg(form)
+        return jsonify({'status': response_result.status_code})
+
+    return render_template('studies/course.html', sections=nav_data)
+
+
+@frontend_blueprint.route('/subject-reg', methods=['GET','POST'])
+def subject_reg():
+    if not session.get('user'):
+        return redirect(url_for('frontend.login'))
+
+    user_id = session['user'].get('id')
+    nav_data = navigation_data(user_id)
+    courses = StudiesClient.get_all_courses()
+
+    form = forms.SubjectForm()
+    if request.method == "POST":
+        response_result = StudiesClient.subject_reg(form)
+        return jsonify({'status': response_result.status_code})
+
+    return render_template('studies/subject.html', sections=nav_data, courses=courses)
+
+
+@frontend_blueprint.route('/paper-create', methods=['GET','POST'])
+def paper_create():
+    if not session.get('user'):
+        return redirect(url_for('frontend.login'))
+
+    user_id = session['user'].get('id')
+    nav_data = navigation_data(user_id)
+    subjects = StudiesClient.get_all_subjects()
+    code = StudiesClient.get_nextPaper_code().get('code')
+
+    form = forms.PaperForm()
+    if request.method == 'POST':
+        response_result = StudiesClient.post_reg_paper(form)
+        return jsonify({'status': response_result.status_code})
+
+    return render_template('studies/paper_creation.html', sections=nav_data, subjects=subjects, code=code)\
+
+
+@frontend_blueprint.route('/question-bank', methods=['GET','POST'])
+def question_bank():
+    if not session.get('user'):
+        return redirect(url_for('frontend.login'))
+
+    user_id = session['user'].get('id')
+    nav_data = navigation_data(user_id)
+
+
+    return render_template('studies/create_questions.html', sections=nav_data)

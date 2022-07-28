@@ -17,7 +17,7 @@ class StaffClient:
         url = "http://127.0.0.1:5002/api/department"
         response = requests.request(method="GET", url=url)
         branch = response.json()
-        return branch \
+        return branch
 
     @staticmethod
     def get_staff_latest_code():

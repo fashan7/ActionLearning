@@ -56,3 +56,21 @@ class StaffForm(FlaskForm):
     city = StringField('city', validators=[DataRequired()])
     country = StringField('country', validators=[DataRequired()])
     submit = SubmitField('submitReg')
+
+class CourseForm(FlaskForm):
+    cname = StringField('cname', validators=[DataRequired()])
+    semester = StringField('semester', validators=[DataRequired()])
+    submit = SubmitField('submitReg')
+
+class SubjectForm(FlaskForm):
+    course = StringField('course', validators=[DataRequired()])
+    subject = StringField('subject', validators=[DataRequired()])
+    submit = SubmitField('submitReg')
+
+
+class PaperForm(FlaskForm):
+    papercode = StringField('papercode', validators=[DataRequired()])
+    subject = StringField('subject', validators=[DataRequired()])
+    duration = StringField('duration', validators=[DataRequired()])
+    noquestion = StringField('noquestion', validators=[DataRequired()])
+    submit = SubmitField('submitReg')

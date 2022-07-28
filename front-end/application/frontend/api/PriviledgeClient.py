@@ -21,7 +21,7 @@ class PrivilegeClient:
     @staticmethod
     def get_priv_pages(section, user_id):
         r = requests.get(f'http://127.0.0.1:5002/api/get-priv-pages/{section}/{user_id}')
-        return r.json() \
+        return r.json()
 
     @staticmethod
     def get_new_pages_not_set(section):
@@ -31,7 +31,7 @@ class PrivilegeClient:
     @staticmethod
     def post_insert_priv(page_id):
         r = requests.get(f'http://127.0.0.1:5002/api/register-priv/{page_id}')
-        return r.json()\
+        return r.json()
 
     @staticmethod
     def update_page(id, status):
