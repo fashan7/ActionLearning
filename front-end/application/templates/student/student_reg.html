@@ -57,8 +57,8 @@
                                        placeholder="John Doe"/>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label" for="studentcode">Student Code *</label>
-                                <input type="text" class="form-control" id="studentcode" name="studentcode"
+                                <label class="form-label" for="rollnumber">Roll Number *</label>
+                                <input type="text" class="form-control" id="rollnumber" name="rollnumber"
                                        placeholder="John Doe"/>
                             </div>
                             <div class="mb-3">
@@ -73,7 +73,7 @@
                                             aria-label="john.doe"
                                             aria-describedby="basic-default-email2"
                                     />
-                                    <span class="input-group-text" id="basic-default-email2">@example.com</span>
+                                    <span class="input-group-text" id="basic-default-email">@example.com</span>
                                 </div>
                                 <div class="form-text">You can use letters, numbers & periods</div>
                             </div>
@@ -85,9 +85,7 @@
                                            placeholder="Username" aria-label="Username"
                                            aria-describedby="basic-addon11">
                                 </div>
-
                             </div>
-
                             <div class="mb-3">
                                 <div class="form-password-toggle">
                                     <label class="form-label" for="password">Password *</label>
@@ -99,24 +97,48 @@
                                     </div>
                                 </div>
                             </div>
+
                             <div class="mb-3">
-                                <label for="roles" class="form-label">User Role *</label>
-                                <select id="roles" name="roles" class="form-select">
-                                    <option>-- select --</option>
-                                    {% for key in roles %}
-                                        <option value="{{ key.id }}">{{ key.name }}</option>
-                                    {% endfor %}
+                                <label for="gender" class="form-label">Gender *</label>
+                                <select id="gender" name="gender" class="form-select">
+                                    <option value="male" selected>Male</option>
+                                    <option value="female">Female</option>
                                 </select>
                             </div>
+                             <div class="mb-3 row">
+                                <label for="dob" class="col-md-2 col-form-label">Date Of Birth *</label>
+                                <div class="col-md-10">
+                                  <input class="form-control" type="date"  id="dob" name="dob" />
+                                </div>
+                              </div>
                             <div class="mb-3">
-                                <label for="branch" class="form-label">Branch *</label>
-                                <select id="branch" name="branch" class="form-select">
-                                    <option>-- select --</option>
-                                    {% for key in branches %}
-                                        <option value="{{ key.branch_id }}">{{ key.branch_name }}</option>
-                                    {% endfor %}
-                                </select>
+                                <label class="form-label" for="parentname">Parent's Name *</label>
+                                <input type="text" class="form-control" id="parentname" name="parentname"
+                                       placeholder="John Doe"/>
                             </div>
+                            <div class="mb-3">
+                              <label class="form-label" for="phone">Phone No *</label>
+                              <input type="text" id="phone" name="phone" class="form-control phone-mask" placeholder="658 799 8941">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="pemail">Parent Email *</label>
+                                <div class="input-group input-group-merge">
+                                    <input
+                                            type="text"
+                                            id="pemail"
+                                            name="pemail"
+                                            class="form-control"
+                                            placeholder="john.doe"
+                                            aria-label="john.doe"
+                                            aria-describedby="basic-default-email2"
+                                    />
+                                    <span class="input-group-text" id="basic-default-email2">@example.com</span>
+                                </div>
+                                <div class="form-text">You can use letters, numbers & periods</div>
+                            </div>
+
+
+
                             <div class="mb-3">
                                 <label class="form-label" for="address1">Address 01 *</label>
                                 <input type="text" class="form-control" id="address1" name="address1"/>
@@ -427,12 +449,12 @@ $(document).ready(function (){
         if(loading){
             return ;
         }
-
+        //studentname rollnumber email username password gender dob parentname  pemail address1 address2 address3 postalcode city country
         loading = true;
-        var firstname = $("#firstname").val(), lastname = $("#lastname").val(), email = $("#email").val(), username = $("#username").val(), password = $("#password").val();
-        var roles = $("#roles").val(), branch = $("#branch").val(), address1 = $("#address1").val(), postalcode = $("#postalcode").val(), city = $("#city").val(), country = $('#country').val();
-
-        if((firstname == "") || (lastname == "") || (email == "") || (username == "") || (password == "") || (roles == "") || (branch == "") || (address1 == "") || (postalcode == "") || (city == "") || (country == ""))
+        var studentname = $("#studentname").val(), rollnumber = $("#rollnumber").val(), email = $("#email").val(), username = $("#username").val(), password = $("#password").val();
+        var gender = $("#gender").val(), dob = $("#dob").val(), address1 = $("#address1").val(), postalcode = $("#postalcode").val(), city = $("#city").val(), country = $('#country').val();
+        var parentname = $("#parentname").val(), pemail = $("#pemail").val(), phone = $('#phone').val();
+        if((studentname == "") || (rollnumber == "") || (email == "") || (username == "") || (password == "") || (gender == "") || (dob == "") || (parentname == "") || (pemail == "")|| (address1 == "") || (postalcode == "") || (city == "") || (country == "") || (phone == ""))
         {
             Swal.fire({
               icon: 'warning',
@@ -445,7 +467,7 @@ $(document).ready(function (){
             var data = $("#formRegister").serialize();
             $.ajax({
                 type: "POST",
-                url: "/user-reg",
+                url: "/student-reg",
                 contentType: "application/x-www-form-urlencoded",
                 data: data,
                 success: function (jsonData) {

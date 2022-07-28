@@ -67,10 +67,17 @@ class SubjectForm(FlaskForm):
     subject = StringField('subject', validators=[DataRequired()])
     submit = SubmitField('submitReg')
 
-
 class PaperForm(FlaskForm):
     papercode = StringField('papercode', validators=[DataRequired()])
     subject = StringField('subject', validators=[DataRequired()])
     duration = StringField('duration', validators=[DataRequired()])
     noquestion = StringField('noquestion', validators=[DataRequired()])
+    submit = SubmitField('submitReg')
+
+class RecommendationForm(FlaskForm):
+    recommendation = StringField('recommendation', validators=[DataRequired()])
+    submit = SubmitField('submitReg')
+
+class FeedbackForm(FlaskForm):
+    feedback = StringField('feedback', validators=[DataRequired()])
     submit = SubmitField('submitReg')
