@@ -36,6 +36,7 @@ class User(UserMixin, db.Model):
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), nullable=False)
     branch_id = db.Column(db.Integer, db.ForeignKey('branch.id'), nullable=False)
     userpriv = db.relationship('Userpriviledge', uselist=False, backref="User")
+    paper_id = db.relationship('Paper_creation', uselist=False, backref="User")
 
     def encode_api_key(self):
         self.api_key = sha256_crypt.hash(self.username + str(datetime.utcnow))
@@ -144,22 +145,25 @@ class Userpriviledge(db.Model):
             'page_id': self.pageallocation_id
         }
 
+
 class Course(db.Model):
-    course_name = db.Column(db.String(100),unique=False, nullable=False)
-    course_semester = db.Column(db.String(100),unique=False, nullable=False)
-    status = db.Column(db.Boolean,default=True)
+    course_name = db.Column(db.String(100), unique=False, nullable=False)
+    course_semester = db.Column(db.String(100), unique=False, nullable=False)
+    status = db.Column(db.Boolean, default=True)
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     subfk = db.relationship('Subjects', uselist=False, backref="course")
+
     def __repr__(self):
         return '<status {}>'.format(self.status)
 
     def to_json(self):
-        return{
-            'course_name':self.course_name,
-            'course_semester':self.course_semester,
-            'status':self.status,
-            'id':self.id
+        return {
+            'course_name': self.course_name,
+            'course_semester': self.course_semester,
+            'status': self.status,
+            'id': self.id
         }
+
 
 class Subjects(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -167,24 +171,23 @@ class Subjects(db.Model):
     name = db.Column(db.String(100), unique=False, nullable=False)
     status = db.Column(db.Boolean, default=True)
 
-
     def __repr__(self):
         return '<id {}>'.format(self.id)
 
     def to_json(self):
-        return{
+        return {
             'id': self.id,
             'course_id': self.course_id,
             'name': self.name,
             'status': self.status
         }
 
+
 class Staffstructure(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(100), unique=False, nullable=False)
     status = db.Column(db.Boolean, default=True)
     staff_relation = db.relationship('Staff', uselist=False, backref="staffstructure")
-
 
     def __repr__(self):
         return '<id {}>'.format(self.id)
@@ -194,6 +197,7 @@ class Staffstructure(db.Model):
             'id': self.id,
             'name': self.name
         }
+
 
 class Staff(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -219,6 +223,7 @@ class Staff(db.Model):
             'username': self.username
         }
 
+
 class Studentregistration(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(100), unique=False, nullable=False)
@@ -243,15 +248,12 @@ class Studentregistration(db.Model):
     blood_group = db.Column(db.String(100), unique=False, nullable=False)
     nationality = db.Column(db.String(100), unique=False, nullable=False)
     student_email = db.Column(db.String(100), unique=False, nullable=False)
-   # studentattendances = db.relationship('Studentattendance', uselist=False, backref="studentregistration")
+    # studentattendances = db.relationship('Studentattendance', uselist=False, backref="studentregistration")
     exam_book = db.relationship('Exambooking', uselist=False, backref="studentregistration")
     exam_result = db.relationship('Examresults', uselist=False, backref="studentregistration")
 
-
-
     def __repr__(self):
         return '<id {}>'.format(self.id)
-
 
     def to_json(self):
         return {
@@ -299,7 +301,6 @@ class Studentattendance(db.Model):
         return '<id {}>'.format(self.id)
 
     def to_json(self):
-
         return {
             'id': self.id,
             'student_code': self.student_code,
@@ -320,7 +321,7 @@ class Studentfee(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     fee_type_id = db.Column(db.String(100), unique=True, nullable=False)
     student_name = db.Column(db.String(100), unique=False, nullable=False)
-    pay_date = db.Column(db.DateTime,  nullable=False)
+    pay_date = db.Column(db.DateTime, nullable=False)
     actual_amount = db.Column(db.FLOAT, unique=False, nullable=False)
     pay_amount = db.Column(db.FLOAT, unique=False, nullable=False)
     balance_amount = db.Column(db.FLOAT, unique=False, nullable=False)
@@ -345,7 +346,7 @@ class Studentfee(db.Model):
 
     def to_json(self):
         return {
-            'id':self.id,
+            'id': self.id,
             'student_id': self.student_id,
             'fee_type_id': self.fee_type_id,
             'student_name': self.student_name,
@@ -367,14 +368,15 @@ class Studentfee(db.Model):
             'active': self.active
         }
 
+
 class Paper_creation(db.Model):
     paper_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    subject_id =  db.Column(db.Integer, db.ForeignKey('subjects.id'), nullable=False)
+    subject_id = db.Column(db.Integer, db.ForeignKey('subjects.id'), nullable=False)
     duration = db.Column(db.Integer, nullable=False)
     no_of_questions = db.Column(db.Integer, nullable=False)
-    paper_no=  db.Column(db.String(100), unique=False, nullable=False)
+    paper_no = db.Column(db.String(100), unique=False, nullable=False)
     status = db.Column(db.Boolean, default=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('studentregistration.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     que_fk = db.relationship('Questions', uselist=False, backref="paper_creation")
 
     def __repr__(self):
@@ -402,6 +404,7 @@ class Questions(db.Model):
     correct_ans = db.Column(db.Integer, default=True)
     status = db.Column(db.Boolean, default=True)
     ansfk = db.relationship('Answers', uselist=False, backref='questions')
+
     def __repr__(self):
         return '<question_id {}>'.format(self.question_id)
 
@@ -416,6 +419,7 @@ class Questions(db.Model):
             'correct_ans': self.correct_ans,
             'status': self.status
         }
+
 
 class Answers(db.Model):
     answer_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -437,17 +441,19 @@ class Answers(db.Model):
             'status': self.status
         }
 
+
 class Exambooking(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    exam_id = db.Column(db.String, unique= True,default=True)
+    exam_id = db.Column(db.String, unique=True, default=True)
     student_id = db.Column(db.Integer, db.ForeignKey('studentregistration.id'), nullable=False)
     subject_id = db.Column(db.Integer, db.ForeignKey('subjects.id'), nullable=False)
-    exam_date = db.Column( db.Date, nullable=False)
-    start_time = db.Column(db.Time,nullable = False)
-    end_time = db.Column(db.Time,nullable = False)
+    exam_date = db.Column(db.Date, nullable=False)
+    start_time = db.Column(db.Time, nullable=False)
+    end_time = db.Column(db.Time, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     subfk = db.relationship('Examresults', uselist=False, backref="exambooking")
-    #subfkk = db.relationship('Examresults', uselist=False, backref="Exam_booking")
+
+    # subfkk = db.relationship('Examresults', uselist=False, backref="Exam_booking")
 
     def __repr__(self):
         return '<id {}>'.format(self.id)
@@ -460,7 +466,7 @@ class Exambooking(db.Model):
             'student_id': self.student_id,
             'subject_id': self.subject_id,
             'exam_date': self.exam_date,
-            'user_id':self.user_id
+            'user_id': self.user_id
         }
 
 
@@ -469,7 +475,7 @@ class Examresults(db.Model):
     exam_id = db.Column(db.String, db.ForeignKey('exambooking.exam_id'), nullable=False)
     exam_log = db.Column(db.Text())
     results = db.Column(db.String(100), unique=False, nullable=False)
-    marks = db.Column(db.Float, unique=False, nullable= False)
+    marks = db.Column(db.Float, unique=False, nullable=False)
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
     def __repr__(self):
@@ -482,6 +488,6 @@ class Examresults(db.Model):
             'exam_id': self.exam_id,
             'exam_log': self.exam_log,
             'result': self.results,
-            'marks':self.marks,
+            'marks': self.marks,
             'id': self.id
         }
