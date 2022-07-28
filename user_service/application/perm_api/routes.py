@@ -46,9 +46,6 @@ def get_users():
     return response
 
 
-# put User
-
-@perm_api_blueprint.route('/test/<userid>', methods=['GET'])
 def set_privilege(userid):
     pages = Pageallocation.query.all()
 
@@ -61,10 +58,7 @@ def set_privilege(userid):
         item.pageallocation_id = page_id
         db.session.add(item)
         db.session.commit()
-    return {'s': '2'}
 
-
-# put  Userpriviledge
 
 # No returns since this method is called within a function
 
@@ -1089,8 +1083,9 @@ def subject_get(id):
 @perm_api_blueprint.route('/api/get-subjects', methods=['GET'])
 def subject_all():
     items = list()
-    for row in Subjects.query.join(Course, Course.id == Subjects.course_id).with_entities(Course.course_name, Subjects.id, Subjects.name):
-        items.append({'course_name':row[0],'subject_name':row[2],'subject_id':row[1]})
+    for row in Subjects.query.join(Course, Course.id == Subjects.course_id).with_entities(Course.course_name,
+                                                                                          Subjects.id, Subjects.name):
+        items.append({'course_name': row[0], 'subject_name': row[2], 'subject_id': row[1]})
 
     response = jsonify(items)
     return response
@@ -1182,31 +1177,6 @@ def paper_update(id):
 
 
 # question
-@perm_api_blueprint.route('/api/ques/create/', methods=['POST'])
-def question_create():
-    question_id = request.form['question_id']
-    paper_id = request.form['paper_id']
-    question = request.form['question']
-    question_order = request.form['question_order']
-    points = request.form['points']
-    correct_ans = request.form['correct_ans']
-
-    item = Questions()
-
-    item.question_id = question_id
-    item.paper_id = paper_id
-    item.question = question
-    item.question_order = question_order
-    item.points = points
-    item.correct_ans = correct_ans
-
-    db.session.add(item)
-    db.session.commit()
-
-    response = jsonify({'message': 'Question created', 'questions': item.to_json()})
-    return response
-
-
 @perm_api_blueprint.route('/api/ques/update/', methods=['PUT'])
 def question_update():
     item = Questions.query.filter_by(id=id).first()
@@ -1254,29 +1224,6 @@ def getallques():
 
 
 ##########################################################################################################################
-# answer
-@perm_api_blueprint.route('/api/ans/create/', methods=['POST'])
-def answer_create():
-    answer_id = request.form['answer_id']
-    question_id = request.form['question_id']
-    answer = request.form['answer']
-    answer_order = request.form['answer_order']
-    # status = request.form['status']
-
-    item = Answers()
-
-    item.question_id = question_id
-    item.answer_id = answer_id
-    item.answer = answer
-    item.answer_order = answer_order
-
-    # item.status = status
-
-    db.session.add(item)
-    db.session.commit()
-
-    response = jsonify({'message': 'Answer created', 'Answer': item.to_json()})
-    return response
 
 
 @perm_api_blueprint.route('/api/ans/update/<answer_id>', methods=['PUT'])
@@ -1430,8 +1377,8 @@ def getresultall():
 
 
 @perm_api_blueprint.route('/api/register-priv/<page_id>', methods=['GET'])
-def register_priv( page_id):
-    for row in User.query.filter(User.status==True).all():
+def register_priv(page_id):
+    for row in User.query.filter(User.status == True).all():
         user_id = row.to_json().get('id')
 
         User.query
@@ -1467,3 +1414,139 @@ def gen_paper_code():
     else:
         code = '0001'
         return jsonify({'code': code})
+
+
+@perm_api_blueprint.route('/api/load-paper', methods=['GET'])
+def load_paper():
+    item = Paper_creation.query.filter(Paper_creation.status == True).all()
+    if item is not None:
+        data = list()
+        for row in item:
+            data.append(row.to_json())
+        return jsonify({'data': data})
+    else:
+        return jsonify({'message': 'Cannot find result'}), 404
+
+
+@perm_api_blueprint.route('/api/get-paper-detail/<paper_no>', methods=['GET'])
+def get_paper_detail(paper_no):
+    item = Paper_creation.query.join(Subjects, Subjects.id == Paper_creation.subject_id).join(Course,
+                                                                                              Course.id == Subjects.course_id).filter(
+        Paper_creation.paper_no == paper_no, Paper_creation.status == True).with_entities(Subjects.name,
+                                                                                          Course.course_name,
+                                                                                          Paper_creation.no_of_questions,
+                                                                                          Paper_creation.paper_id)
+    if item is not None:
+        items = dict()
+        for row in item:
+            items.update({'subject_name': row[0], 'course_name': row[1], 'noofquestion': row[2], 'paperid': row[3]})
+        response = jsonify(items), 200
+        return response
+
+    response = jsonify({'message': 'Cannot find result'}), 400
+    return response
+
+
+@perm_api_blueprint.route('/api/load-questions/<paper_id>', methods=['GET'])
+def get_questions(paper_id):
+    item = Questions.query.filter(Questions.paper_id == paper_id).all()
+    data = list()
+    for row in item:
+        data.append(row.to_json())
+    return jsonify(data), 200
+
+
+@perm_api_blueprint.route('/api/get-question/<paper_id>/<question_ord>', methods=['GET'])
+def get_question(paper_id, question_ord):
+    item = Questions.query.filter(Questions.paper_id == paper_id, Questions.question_order == question_ord).all()
+    data = list()
+    for row in item:
+        data.append(row.to_json())
+    return jsonify(data), 200
+
+
+@perm_api_blueprint.route('/api/get-answers/<question_id>', methods=['GET'])
+def get_answers(question_id):
+    item = Answers.query.filter(Answers.question_id == question_id).order_by(Answers.answer_order).all()
+    data = list()
+    for row in item:
+        data.append(row.to_json())
+    return jsonify(data), 200
+
+
+@perm_api_blueprint.route('/api/get-total-question/<paper_id>', methods=['GET'])
+def get_count_question(paper_id):
+    item = Questions.query.filter(Questions.paper_id == paper_id).count()
+
+    return jsonify({'count': item}), 200
+
+
+@perm_api_blueprint.route('/api/paper-publish/<paper_id>', methods=['GET'])
+def publish_paper(paper_id):
+    item = Paper_creation.query.filter(Paper_creation.paper_id == paper_id).first()
+    item.status = False
+    db.session.commit()
+    return jsonify({'message': 'Updated Successfully'}), 200
+
+
+@perm_api_blueprint.route('/api/update-question', methods=['POST'])
+def update_question():
+    question = request.form['question']
+    answer = request.form['answer']
+    id = request.form['id']
+    item = Questions.query.filter(Questions.question_id == id).first()
+    item.question = question
+    item.correct_ans = answer
+
+    db.session.commit()
+    return jsonify({'message': 'Updated Successfully'}), 200
+
+
+@perm_api_blueprint.route('/api/delete-answers/<question_id>', methods=['GET'])
+def delete_answers(question_id):
+    item = Answers.query.filter(Answers.question_id == question_id).first()
+    db.session.delete(item)
+    db.session.commit()
+    return jsonify({'message': 'delete Successfully'}), 200
+
+
+@perm_api_blueprint.route('/api/answer/create', methods=['POST'])
+def answer_create():
+    question_id = request.form['question_id']
+    answer = request.form['answer']
+    answer_order = request.form['answer_order']
+
+    item = Answers()
+
+    item.question_id = question_id
+    item.answer = answer
+    item.answer_order = answer_order
+
+    db.session.add(item)
+    db.session.commit()
+
+    response = jsonify({'message': 'Answer created', 'Answer': item.to_json()})
+    return response
+
+
+@perm_api_blueprint.route('/api/question/create', methods=['POST'])
+def question_create():
+    paper_id = request.form['paper_id']
+    question = request.form['question']
+    question_order = request.form['question_order']
+    points = request.form['points']
+    correct_ans = request.form['correct_ans']
+
+    item = Questions()
+
+    item.paper_id = paper_id
+    item.question = question
+    item.question_order = question_order
+    item.points = points
+    item.correct_ans = correct_ans
+
+    db.session.add(item)
+    db.session.commit()
+
+    response = jsonify({'message': 'Question created', 'questions': item.to_json()})
+    return response

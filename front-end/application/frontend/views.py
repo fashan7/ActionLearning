@@ -1,4 +1,8 @@
+import os
+
 import requests
+from jinja2 import ext
+
 from . import forms
 from . import frontend_blueprint
 from .api.PriviledgeClient import PrivilegeClient
@@ -7,7 +11,7 @@ from .api.StaffClient import StaffClient
 from .api.StudiesClient import StudiesClient
 from .. import login_manager
 
-from flask import render_template, session, redirect, url_for, flash, request, jsonify
+from flask import render_template, session, redirect, url_for, flash, request, jsonify, make_response
 from flask_login import current_user
 
 
@@ -247,6 +251,137 @@ def question_bank():
 
     user_id = session['user'].get('id')
     nav_data = navigation_data(user_id)
+    papers = StudiesClient.get_papers().get('data')
 
 
-    return render_template('studies/create_questions.html', sections=nav_data)
+    return render_template('studies/create_questions.html', sections=nav_data, papers=papers)
+
+
+@frontend_blueprint.route('/qbank', methods=['POST'])
+def qbank():
+    paperno = request.form['paperno']
+    response = StudiesClient.get_paper_detail(paperno)
+
+    return render_template('studies/qbank.html', paperno=paperno, paper_detail=response)
+
+@frontend_blueprint.route('/imageuploader', methods=['POST'])
+def imageuploader():
+    file = request.files.get('file')
+    if file:
+        filename = file.filename.lower()
+        if ext in ['jpg', 'gif', 'png', 'jpeg']:
+            img_fullpath = os.path.join('application/static/images', filename)
+            file.save(img_fullpath)
+            return jsonify({'location' : filename})
+
+    # fail, image did not upload
+    output = make_response(404)
+    output.headers['Error'] = 'Image failed to upload'
+    return output
+
+@frontend_blueprint.route('/loadQpad', methods=['POST'])
+def loadQpad():
+    paper_id = request.form['paper']
+    noofquestion = request.form['noofquestion']
+
+    questions = StudiesClient.load_questions(paper_id)
+    question_list = list()
+    for row in questions:
+        question_list.append(row.get('question_order'))
+
+    html_data = ''
+    for i in range(1,int(noofquestion)+1):
+        if i in question_list:
+            html_data += f"<div class='col-sm-2' style='padding:1px 2px 1px 2px;'><button class='btn btn-primary' onclick='getQue({paper_id}, {i})'>{i}</button></div>"
+        else:
+            html_data += f"<div class='col-sm-2' style='padding: 1px 2px 1px 2px;'><button class='btn btn-default' onclick='getQue(0, {i})'>{i}</button></div>"
+
+    return html_data
+
+
+@frontend_blueprint.route('/get_que', methods=['POST'])
+def get_que():
+    paper = request.form['paper']
+    que_ord = request.form['que']
+
+    question_stack = list()
+    question = StudiesClient.get_question(paper, que_ord)
+    for row in question:
+        question_stack.append(row.get('question'))
+        question_stack.append(row.get('correct_ans'))
+        question_id = row.get('question_id')
+        result = StudiesClient.get_answer(question_id)
+        for inrow in result:
+            question_stack.append(inrow.get('answer'))
+
+    return jsonify({'data':question_stack})
+
+@frontend_blueprint.route('/totalnoquestion', methods=['POST'])
+def total_no_question():
+    paper = request.form['paper']
+
+    get_count = StudiesClient.get_count_answer(paper).get('count')
+    return jsonify({'count':get_count})
+
+
+@frontend_blueprint.route('/confirm-publish-exam', methods=['POST'])
+def publish_exam():
+    paper = request.form['paper']
+
+    response = StudiesClient.publis_paper(paper)
+    return jsonify(response)
+
+
+@frontend_blueprint.route('/save_ques', methods=['POST'])
+def save_questions():
+    data = [request.form['Pno'],request.form['question'],request.form['qnum'],request.form['correct'],request.form['ans1'],request.form['ans2'],request.form['ans3'],request.form['ans4']]
+    result_question = StudiesClient.get_question(data[0], data[2])
+    if len(result_question) > 0:
+        for row in result_question:
+            question_id = row.get('question_id')
+            StudiesClient.update_question(data[1], data[3], question_id)
+            StudiesClient.delete_answer(question_id)
+            for i in range(1,5):
+                answer = data[i+3]
+                answer_ordr = i
+                StudiesClient.insert_answer(question_id, answer, answer_ordr)
+    else:
+        paperid = data[0]
+        question = data[1]
+        question_order = data[2]
+        correct = data[3]
+        StudiesClient.insert_question(paperid, question, question_order, 1.0, correct)
+        result_question = StudiesClient.get_question(data[0], data[2])
+
+        for row in result_question:
+            question_id = row.get('question_id')
+            for i in range(1,5):
+                answer = data[i+3]
+                answer_ordr = i
+                StudiesClient.insert_answer(question_id, answer, answer_ordr)
+
+    return jsonify({'message':'Questions & Answers Saved'}), 200
+
+
+@frontend_blueprint.route('/book-exam', methods=['GET','POST'])
+def book_exam():
+    if not session.get('user'):
+        return redirect(url_for('frontend.login'))
+
+    user_id = session['user'].get('id')
+    nav_data = navigation_data(user_id)
+
+    return render_template('studies/book_exam.html', sections=nav_data)
+
+
+@frontend_blueprint.route('/student-reg', methods=['GET','POST'])
+def student_reg():
+    if not session.get('user'):
+        return redirect(url_for('frontend.login'))
+
+    user_id = session['user'].get('id')
+    nav_data = navigation_data(user_id)
+
+    return render_template('student/student_reg.html', sections=nav_data)
+
+
