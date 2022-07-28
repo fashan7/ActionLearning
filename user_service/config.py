@@ -20,7 +20,7 @@ class Config:
 class DevelopmentConfig(Config):
     ENV = "development"
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:Qwerty#123@localhost/school_service'
+    SQLALCHEMY_DATABASE_URI = 'postgresql://thoshith:Action000@localhost/school_service'
     SQLALCHEMY_ECHO = True
 
 

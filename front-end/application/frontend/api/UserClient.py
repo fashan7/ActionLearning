@@ -75,4 +75,26 @@ class UserClient:
 
         return response
 
+    @staticmethod
+    def recommendation(form):
+        payload = {
+            'recommendation': form.recommendation.data
+        }
+
+        url = ' http://127.0.0.1:5002/api/student-recommendation/recommendation'
+        response = requests.request("POST", url=url, data=payload)
+
+        return response
+
+    @staticmethod
+    def feedback(form):
+        payload = {
+            'feedback': form.feedback.data
+        }
+
+        url = ' http://127.0.0.1:5002/api/student-recommendation/feedback'
+        response = requests.request("POST", url=url, data=payload)
+
+        return response
+
 

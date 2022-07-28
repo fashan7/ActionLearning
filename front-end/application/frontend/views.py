@@ -3,6 +3,7 @@ from . import forms
 from . import frontend_blueprint
 from .api.PriviledgeClient import PrivilegeClient
 from .api.UserClient import UserClient
+import json
 from .. import login_manager
 
 from flask import render_template, session, redirect, url_for, flash, request, jsonify
@@ -94,6 +95,37 @@ def user_roles():
         return jsonify({'status': response_result.status_code})
 
     return render_template('user/user-roles.html', sections=nav_data)
+
+@frontend_blueprint.route('/recommendation', methods=['GET','POST'])
+def recommendation():
+    if not session.get('user'):
+        return redirect(url_for('frontend.login'))
+
+    user_id = session['user'].get('id')
+    nav_data = navigation_data(user_id)
+
+    form = forms.RecommendationForm()
+    if request.method == "POST":
+        response_result = UserClient.recommendation(form)
+        temp = json.loads(response_result.text)
+        return jsonify({'status': response_result.status_code,'recommendedOp':temp.get('message')})
+
+    return render_template('student_recommendation/recommendation.html', sections=nav_data)
+
+@frontend_blueprint.route('/feedback', methods=['GET','POST'])
+def feedback():
+    if not session.get('user'):
+        return redirect(url_for('frontend.login'))
+
+    user_id = session['user'].get('id')
+    nav_data = navigation_data(user_id)
+
+    form = forms.FeedbackForm()
+    if request.method == "POST":
+        response_result = UserClient.feedback(form)
+        return jsonify({'status': response_result.status_code})
+
+    return render_template('student_recommendation/feedback.html', sections=nav_data)
 
 
 

@@ -27,3 +27,11 @@ class UserForm(FlaskForm):
 class RolesForm(FlaskForm):
     rolename = StringField('rolename', validators=[DataRequired()])
     submit = SubmitField('submitReg')
+
+class RecommendationForm(FlaskForm):
+    recommendation = StringField('recommendation', validators=[DataRequired()])
+    submit = SubmitField('submitReg')
+
+class FeedbackForm(FlaskForm):
+    feedback = StringField('feedback', validators=[DataRequired()])
+    submit = SubmitField('submitReg')
