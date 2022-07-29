@@ -16,6 +16,9 @@ from flask import render_template, session, redirect, url_for, flash, request, j
 from flask_login import current_user
 import json
 
+@frontend_blueprint.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -249,11 +252,10 @@ def paper_create():
         response_result = StudiesClient.post_reg_paper(form)
         return jsonify({'status': response_result.status_code})
 
-    return render_template('studies/paper_creation.html', sections=nav_data, subjects=subjects, code=code) \
- \
-           @ frontend_blueprint.route('/question-bank', methods=['GET', 'POST'])
+    return render_template('studies/paper_creation.html', sections=nav_data, subjects=subjects, code=code)
 
 
+@frontend_blueprint.route('/question-bank', methods=['GET', 'POST'])
 def question_bank():
     if not session.get('user'):
         return redirect(url_for('frontend.login'))
