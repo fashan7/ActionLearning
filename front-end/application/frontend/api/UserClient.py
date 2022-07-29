@@ -91,6 +91,13 @@ class UserClient:
         return users
 
     @staticmethod
+    def get_all_users_withtypes():
+        url = "http://127.0.0.1:5002/api/users-with-usert"
+        response = requests.request(method="GET", url=url)
+        users = response.json()
+        return users
+
+    @staticmethod
     def recommendation(form):
         payload = {
             'recommendation': form.recommendation.data

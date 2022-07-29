@@ -9,6 +9,7 @@ from .api.PriviledgeClient import PrivilegeClient
 from .api.UserClient import UserClient
 from .api.StaffClient import StaffClient
 from .api.StudiesClient import StudiesClient
+from .api.StudentClient import StudentClient
 from .. import login_manager
 
 from flask import render_template, session, redirect, url_for, flash, request, jsonify, make_response
@@ -115,7 +116,8 @@ def user_roles():
 
     return render_template('user/user-roles.html', sections=nav_data)
 
-@frontend_blueprint.route('/staff-dep', methods=['GET','POST'])
+
+@frontend_blueprint.route('/staff-dep', methods=['GET', 'POST'])
 def department_reg():
     if not session.get('user'):
         return redirect(url_for('frontend.login'))
@@ -131,7 +133,7 @@ def department_reg():
     return render_template('staff/department.html', sections=nav_data)
 
 
-@frontend_blueprint.route('/staff-register', methods=['GET','POST'])
+@frontend_blueprint.route('/staff-register', methods=['GET', 'POST'])
 def staff_reg():
     if not session.get('user'):
         return redirect(url_for('frontend.login'))
@@ -149,7 +151,9 @@ def staff_reg():
         response_result = StaffClient.post_staff_reg(form)
         return jsonify({'status': response_result.status_code})
 
-    return render_template('staff/staff_register.html', sections=nav_data, branches=branches, roles=roles, departments=departments, code=staff_code)
+    return render_template('staff/staff_register.html', sections=nav_data, branches=branches, roles=roles,
+                           departments=departments, code=staff_code)
+
 
 @frontend_blueprint.route('/set-priv', methods=['GET', 'POST'])
 def set_priv():
@@ -159,8 +163,9 @@ def set_priv():
     user_id = session['user'].get('id')
     nav_data = navigation_data(user_id)
 
-    users = UserClient.get_all_users()
+    users = UserClient.get_all_users_withtypes()
     return render_template('user/set_priviledge.html', sections=nav_data, users=users)
+
 
 def process_load_privledge(user_id):
     pages = PrivilegeClient.get_primary_section()
@@ -181,6 +186,7 @@ def process_load_privledge(user_id):
 
     return form_dict
 
+
 @frontend_blueprint.route('/get-page-priv', methods=['POST'])
 def get_page_priviledge():
     pages = PrivilegeClient.get_primary_section()
@@ -194,7 +200,8 @@ def get_page_priviledge():
 
     return render_template('user/sub_load_pirv_page.html', pages=response, user_id=user_id)
 
-@frontend_blueprint.route('/course-reg', methods=['GET','POST'])
+
+@frontend_blueprint.route('/course-reg', methods=['GET', 'POST'])
 def course_reg():
     if not session.get('user'):
         return redirect(url_for('frontend.login'))
@@ -210,7 +217,7 @@ def course_reg():
     return render_template('studies/course.html', sections=nav_data)
 
 
-@frontend_blueprint.route('/subject-reg', methods=['GET','POST'])
+@frontend_blueprint.route('/subject-reg', methods=['GET', 'POST'])
 def subject_reg():
     if not session.get('user'):
         return redirect(url_for('frontend.login'))
@@ -227,7 +234,7 @@ def subject_reg():
     return render_template('studies/subject.html', sections=nav_data, courses=courses)
 
 
-@frontend_blueprint.route('/paper-create', methods=['GET','POST'])
+@frontend_blueprint.route('/paper-create', methods=['GET', 'POST'])
 def paper_create():
     if not session.get('user'):
         return redirect(url_for('frontend.login'))
@@ -242,10 +249,11 @@ def paper_create():
         response_result = StudiesClient.post_reg_paper(form)
         return jsonify({'status': response_result.status_code})
 
-    return render_template('studies/paper_creation.html', sections=nav_data, subjects=subjects, code=code)\
+    return render_template('studies/paper_creation.html', sections=nav_data, subjects=subjects, code=code) \
+ \
+           @ frontend_blueprint.route('/question-bank', methods=['GET', 'POST'])
 
 
-@frontend_blueprint.route('/question-bank', methods=['GET','POST'])
 def question_bank():
     if not session.get('user'):
         return redirect(url_for('frontend.login'))
@@ -253,7 +261,6 @@ def question_bank():
     user_id = session['user'].get('id')
     nav_data = navigation_data(user_id)
     papers = StudiesClient.get_papers().get('data')
-
 
     return render_template('studies/create_questions.html', sections=nav_data, papers=papers)
 
@@ -265,6 +272,7 @@ def qbank():
 
     return render_template('studies/qbank.html', paperno=paperno, paper_detail=response)
 
+
 @frontend_blueprint.route('/imageuploader', methods=['POST'])
 def imageuploader():
     file = request.files.get('file')
@@ -273,12 +281,13 @@ def imageuploader():
         if ext in ['jpg', 'gif', 'png', 'jpeg']:
             img_fullpath = os.path.join('application/static/images', filename)
             file.save(img_fullpath)
-            return jsonify({'location' : filename})
+            return jsonify({'location': filename})
 
     # fail, image did not upload
     output = make_response(404)
     output.headers['Error'] = 'Image failed to upload'
     return output
+
 
 @frontend_blueprint.route('/loadQpad', methods=['POST'])
 def loadQpad():
@@ -291,7 +300,7 @@ def loadQpad():
         question_list.append(row.get('question_order'))
 
     html_data = ''
-    for i in range(1,int(noofquestion)+1):
+    for i in range(1, int(noofquestion) + 1):
         if i in question_list:
             html_data += f"<div class='col-sm-2' style='padding:1px 2px 1px 2px;'><button class='btn btn-primary' onclick='getQue({paper_id}, {i})'>{i}</button></div>"
         else:
@@ -315,14 +324,15 @@ def get_que():
         for inrow in result:
             question_stack.append(inrow.get('answer'))
 
-    return jsonify({'data':question_stack})
+    return jsonify({'data': question_stack})
+
 
 @frontend_blueprint.route('/totalnoquestion', methods=['POST'])
 def total_no_question():
     paper = request.form['paper']
 
     get_count = StudiesClient.get_count_answer(paper).get('count')
-    return jsonify({'count':get_count})
+    return jsonify({'count': get_count})
 
 
 @frontend_blueprint.route('/confirm-publish-exam', methods=['POST'])
@@ -335,15 +345,16 @@ def publish_exam():
 
 @frontend_blueprint.route('/save_ques', methods=['POST'])
 def save_questions():
-    data = [request.form['Pno'],request.form['question'],request.form['qnum'],request.form['correct'],request.form['ans1'],request.form['ans2'],request.form['ans3'],request.form['ans4']]
+    data = [request.form['Pno'], request.form['question'], request.form['qnum'], request.form['correct'],
+            request.form['ans1'], request.form['ans2'], request.form['ans3'], request.form['ans4']]
     result_question = StudiesClient.get_question(data[0], data[2])
     if len(result_question) > 0:
         for row in result_question:
             question_id = row.get('question_id')
             StudiesClient.update_question(data[1], data[3], question_id)
             StudiesClient.delete_answer(question_id)
-            for i in range(1,5):
-                answer = data[i+3]
+            for i in range(1, 5):
+                answer = data[i + 3]
                 answer_ordr = i
                 StudiesClient.insert_answer(question_id, answer, answer_ordr)
     else:
@@ -356,37 +367,33 @@ def save_questions():
 
         for row in result_question:
             question_id = row.get('question_id')
-            for i in range(1,5):
-                answer = data[i+3]
+            for i in range(1, 5):
+                answer = data[i + 3]
                 answer_ordr = i
                 StudiesClient.insert_answer(question_id, answer, answer_ordr)
 
-    return jsonify({'message':'Questions & Answers Saved'}), 200
+    return jsonify({'message': 'Questions & Answers Saved'}), 200
 
 
-@frontend_blueprint.route('/book-exam', methods=['GET','POST'])
-def book_exam():
-    if not session.get('user'):
-        return redirect(url_for('frontend.login'))
-
-    user_id = session['user'].get('id')
-    nav_data = navigation_data(user_id)
-
-    return render_template('studies/book_exam.html', sections=nav_data)
-
-
-@frontend_blueprint.route('/student-reg', methods=['GET','POST'])
+@frontend_blueprint.route('/student-reg', methods=['GET', 'POST'])
 def student_reg():
     if not session.get('user'):
         return redirect(url_for('frontend.login'))
 
     user_id = session['user'].get('id')
     nav_data = navigation_data(user_id)
+    branches = UserClient.get_branches()
+    role_no = StudentClient.get_code_roleno()
 
-    return render_template('student/student_reg.html', sections=nav_data)
+    form = forms.StudentForm()
+    if request.method == "POST":
+        response_result = StudentClient.student_reg(form)
+        return jsonify({'status': response_result.status_code})
+
+    return render_template('student/student_reg.html', sections=nav_data, branches=branches, code=role_no)
 
 
-@frontend_blueprint.route('/recommendation', methods=['GET','POST'])
+@frontend_blueprint.route('/recommendation', methods=['GET', 'POST'])
 def recommendation():
     if not session.get('user'):
         return redirect(url_for('frontend.login'))
@@ -398,11 +405,12 @@ def recommendation():
     if request.method == "POST":
         response_result = UserClient.recommendation(form)
         temp = json.loads(response_result.text)
-        return jsonify({'status': response_result.status_code,'recommendedOp':temp.get('message')})
+        return jsonify({'status': response_result.status_code, 'recommendedOp': temp.get('message')})
 
     return render_template('student_recommendation/recommendation.html', sections=nav_data)
 
-@frontend_blueprint.route('/feedback', methods=['GET','POST'])
+
+@frontend_blueprint.route('/feedback', methods=['GET', 'POST'])
 def feedback():
     if not session.get('user'):
         return redirect(url_for('frontend.login'))
@@ -417,3 +425,38 @@ def feedback():
 
     return render_template('student_recommendation/feedback.html', sections=nav_data)
 
+
+@frontend_blueprint.route('/auto-complete-student', methods=['GET'])
+def autocomplete_student():
+    search = request.values['term']
+    data = list()
+    result = StudentClient.get_student(search).get('data')
+    for row in result:
+        data.append({"value": row.get('name'), "studentid": row.get('std_id')})
+    response = jsonify(data)
+    return response
+
+
+@frontend_blueprint.route('/get-duration', methods=['POST'])
+def get_duration():
+    paper = request.form['paper']
+    response = StudiesClient.get_paper_det_nocondition(paper)
+
+    return jsonify({'duration': response.get('duration'), 'subject_id': response.get('subject_id')})
+
+
+@frontend_blueprint.route('/book-exam', methods=['GET', 'POST'])
+def book_exam():
+    if not session.get('user'):
+        return redirect(url_for('frontend.login'))
+
+    user_id = session['user'].get('id')
+    nav_data = navigation_data(user_id)
+
+    papers = StudiesClient.load_finished_papers().get('data')
+
+    form = forms.BookingForm()
+    if request.method == "POST":
+        StudiesClient.book_exam(form)
+
+    return render_template('studies/book_exam.html', sections=nav_data, papers=papers, user_id=user_id)

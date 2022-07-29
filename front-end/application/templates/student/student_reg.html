@@ -52,14 +52,19 @@
                     <div class="card-body">
                         <form id="formRegister"  method="POST">
                             <div class="mb-3">
-                                <label class="form-label" for="studentname">Student Name *</label>
-                                <input type="text" class="form-control" id="studentname" name="studentname"
-                                       placeholder="John Doe"/>
+                                <label class="form-label" for="firstname">First Name *</label>
+                                <input type="text" class="form-control" id="firstname" name="firstname"
+                                       placeholder="John "/>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="lastname">Last Name *</label>
+                                <input type="text" class="form-control" id="lastname" name="lastname"
+                                       placeholder="Doe"/>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label" for="rollnumber">Roll Number *</label>
                                 <input type="text" class="form-control" id="rollnumber" name="rollnumber"
-                                       placeholder="John Doe"/>
+                                       readonly value="{{ code.code }}"/>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label" for="email">Email *</label>
@@ -103,6 +108,15 @@
                                 <select id="gender" name="gender" class="form-select">
                                     <option value="male" selected>Male</option>
                                     <option value="female">Female</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="branch" class="form-label">Branch *</label>
+                                <select id="branch" name="branch" class="form-select">
+                                    <option>-- select --</option>
+                                    {% for key in branches %}
+                                        <option value="{{ key.branch_id }}">{{ key.branch_name }}</option>
+                                    {% endfor %}
                                 </select>
                             </div>
                              <div class="mb-3 row">
@@ -449,12 +463,12 @@ $(document).ready(function (){
         if(loading){
             return ;
         }
-        //studentname rollnumber email username password gender dob parentname  pemail address1 address2 address3 postalcode city country
+
         loading = true;
-        var studentname = $("#studentname").val(), rollnumber = $("#rollnumber").val(), email = $("#email").val(), username = $("#username").val(), password = $("#password").val();
+        var firstname = $("#firstname").val(), lastname = $("#lastname").val(), branch = $("#lastname").val(), rollnumber = $("#rollnumber").val(), email = $("#email").val(), username = $("#username").val(), password = $("#password").val();
         var gender = $("#gender").val(), dob = $("#dob").val(), address1 = $("#address1").val(), postalcode = $("#postalcode").val(), city = $("#city").val(), country = $('#country').val();
         var parentname = $("#parentname").val(), pemail = $("#pemail").val(), phone = $('#phone').val();
-        if((studentname == "") || (rollnumber == "") || (email == "") || (username == "") || (password == "") || (gender == "") || (dob == "") || (parentname == "") || (pemail == "")|| (address1 == "") || (postalcode == "") || (city == "") || (country == "") || (phone == ""))
+        if((firstname == "") || (lastname == "") || (branch == "") || (rollnumber == "") || (email == "") || (username == "") || (password == "") || (gender == "") || (dob == "") || (parentname == "") || (pemail == "")|| (address1 == "") || (postalcode == "") || (city == "") || (country == "") || (phone == ""))
         {
             Swal.fire({
               icon: 'warning',
@@ -471,7 +485,6 @@ $(document).ready(function (){
                 contentType: "application/x-www-form-urlencoded",
                 data: data,
                 success: function (jsonData) {
-                    console.log(jsonData)
                     if (jsonData.status == 200) {
                         Swal.fire({
                           icon: 'success',

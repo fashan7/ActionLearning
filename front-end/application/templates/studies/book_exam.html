@@ -55,37 +55,39 @@
         <div class="row">
             <div class="col-lg-8 mb-4 order-0">
                 <div class="card mb-4">
-                    <h5 class="card-header">Create Exam Papers</h5>
+                    <h5 class="card-header">Book exam here!..</h5>
                     <div class="card-body">
                         <form id="formRegister" method="POST">
                             <div class="mb-4">
-                                <label class="form-label" for="papercode">Paper Code</label>
-                                <input type="text" class="form-control" id="papercode" name="papercode" value="{{ code }}" readonly/>
+                                <label class="form-label" for="SearchStudent">Student Name</label>
+                                <input type="text" class="form-control" id="SearchStudent" name="SearchStudent" />
+                                <input type="hidden" name="studentid" id="studentid">
+                                <input type="hidden" name="getsecond" id="getsecond">
+                                <input type="hidden" name="subject_id" id="subject_id">
+                                <input type="hidden" name="user_id" id="user_id" value="{{ user_id }}">
                             </div>
                             <div class="mb-3">
-                                <label for="subject" class="form-label">Subject *</label>
-                                <select id="subject" name="subject" class="form-select">
-                                    <option>-- select subject --</option>
-                                    {% for key in subjects %}
-                                        <option value="{{ key.subject_id }}">{{ key.course_name }} -- {{ key.subject_name }}</option>
+                                <label for="paperno" class="form-label">Papers *</label>
+                                <select id="paperno" name="paperno" class="form-select">
+                                    <option>-- select paper no --</option>
+                                    {% for key  in papers %}
+                                        <option value="{{ key.paper_id }}">{{ key.paper_no }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="mb-4">
-                                <label class="form-label" for="duration">Set Exam Duration *</label>
-                                <input type="text" class="form-control" id="duration" name="duration"
-                                       placeholder="40" onkeypress="return numOnly(event);" />
-                            </div>
-                            <div class="mb-4">
-                                <label class="form-label" >No Of Questions *</label>
-                                <div class="iinput-group">
-                                      <button type="button" class="quantity-decrement btn"> - </button>
-                                      <input type="text" class="noquestion" name="noquestion" value="40" min="40" max="100" style="width: 65%;">
-                                      <button type="button" class="quantity-increment btn"> + </button>
+                            <div class="mb-3 row">
+                                <label for="examdate" class="col-md-2 col-form-label">Exam Date *</label>
+                                <div class="col-md-10">
+                                  <input class="form-control" type="date"  id="examdate" name="examdate" />
                                 </div>
-                            </div>
-                            <button type="submit" id="submitReg" name="submitReg" class="btn btn-primary">Submit
-                            </button>
+                              </div>
+                            <div class="mb-3 row">
+                                <label for="examtime" class="col-md-2 col-form-label">Exam Time</label>
+                                <div class="col-md-10">
+                                  <input class="form-control" type="time" value="12:30:00" id="examtime" name="examtime">
+                                </div>
+                              </div>
+                            <button type="submit" id="submitReg" name="submitReg" class="btn btn-primary">Book Exam</button>
                         </form>
                     </div>
                 </div>
@@ -97,84 +99,90 @@
     <div class="content-backdrop fade"></div>
 </div>
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 <script>
-
-$(document).ready(function() {
-    function numOnly(e) {
-        var k;
-        document.all ? k = e.keyCode : k = e.which;
-        return ((k > 47 && k < 58 || k == 46));
-    }
-});
- (function ($) {
-// Efeito spinner sem plugin - pagina carrinho - increment
-var quantity = 0;
-$('.quantity-increment').click(function(){;
-  var t = $(this).siblings('.noquestion');
-  var quantity = parseInt($(t).val());
-  $(t).val(quantity + 5);
-
-});
-
-
-// Efeito spinner sem plugin - pagina carrinho - decrement
-$('.quantity-decrement').click(function(){
-  var t = $(this).siblings('.noquestion');
-  var quantity = parseInt($(t).val());
-  if(quantity > 1){
-    $(t).val(quantity - 5);
-  }
-});
-})(jQuery);
-
-    $(document).ready(function () {
-        var loading = false;
-        $("#submitReg").click(function (event) {
-            event.preventDefault();
-            if (loading) {
-                return;
-            }
-            loading = true;
-            var subject = $("#subject").val();
-            var duration = $("#duration").val();
-            var noquestion = $("#noquestion").val();
-
-            if ((subject == "") || (duration == "") || (noquestion == "")) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Empty field detected!',
-                    text: 'Fill the required fields',
-                });
-                loading = false;
-            } else {
-                var data = $("#formRegister").serialize();
-                $.ajax({
-                    type: "POST",
-                    url: "/paper-create",
-                    contentType: "application/x-www-form-urlencoded",
-                    data: data,
-                    success: function (jsonData) {
-                        console.log(jsonData)
-                        if (jsonData.status == 200) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Successfully registered',
-                            }).then((result) => {
-                                location.reload();
-                            });
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Oops...',
-                                text: 'Try again!',
-                            }).then((result) => {
-                                location.reload();
-                            });
-                        }
-                    }
-                });
+$('#paperno').change(function() {
+    if ($('#paperno').val() !== "") {
+        var paper = $('#paperno').val();
+        $.ajax({
+            url: "/get-duration",
+            data: {
+                paper: paper
+            },
+            method: "POST",
+            success: function(jsonData) {
+                $('#getsecond').val(jsonData.duration);
+                $('#subject_id').val(jsonData.subject_id);
             }
         });
+    } else {
+        $('#getsecond').val("");
+        $('#subject_id').val("");
+    }
+});
+$(document).on('keyup', '#SearchStudent', function() {
+    $('#gradenumberlist').val("");
+    $('#students').val("");
+    $('#SearchStudent').autocomplete({
+        autoFocus: true,
+        source: "/auto-complete-student",
+        minLength: 4,
+        select: function(event, ui) {
+            $('#studentid').val(ui.item.studentid);
+        }
     });
+});
+
+$(document).ready(function (){
+    var loading = false;
+    $("#submitReg").click(function (event){
+        event.preventDefault();
+        if(loading){
+            return ;
+        }
+        //paperno examdate  examtime SearchStudent
+        loading = true;
+        var paperno = $("#paperno").val(), examdate = $("#examdate").val(), examtime = $("#examtime").val(), SearchStudent = $("#SearchStudent").val();
+
+        if((paperno == "") || (examdate == "") || (examtime == "") || (SearchStudent == ""))
+        {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Empty field detected!',
+              text: 'Fill the required fields',
+            });
+            loading = false;
+        }
+        else {
+            var data = $("#formRegister").serialize();
+            $.ajax({
+                type: "POST",
+                url: "/book-exam",
+                contentType: "application/x-www-form-urlencoded",
+                data: data,
+                success: function (jsonData) {
+                    alert(jsonDataw)
+                    if (jsonData.status == 200) {
+                        Swal.fire({
+                          icon: 'success',
+                          title: 'Successfully registered',
+                        }).then((result) => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                          icon: 'error',
+                          title: 'Oops...',
+                          text: 'Try again!',
+                        }).then((result) => {
+                            location.reload();
+                        });
+                    }
+                }
+            });
+        }
+    });
+});
 </script>
 {% endblock %}

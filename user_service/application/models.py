@@ -237,9 +237,7 @@ class Staff(db.Model):
 
 class Studentregistration(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(100), unique=False, nullable=False)
     roll_number = db.Column(db.String(100), unique=True, nullable=False)
-    student_address = db.Column(db.String(100), unique=False, nullable=False)
     studentusername = db.Column(db.String(100), unique=True, nullable=False)
     gender = db.Column(db.String(15), unique=False, nullable=False)
     date_of_birth = db.Column(db.String(20), unique=False, nullable=False)
@@ -258,27 +256,12 @@ class Studentregistration(db.Model):
     def to_json(self):
         return {
             'id': self.id,
-            'name': self.name,
-            'code': self.code,
             'roll_number': self.roll_number,
-            'student_address': self.student_address,
             'gender': self.gender,
             'date_of_birth': self.date_of_birth,
             'parent_name': self.parent_name,
-            'parent_address': self.parent_address,
             'parent_mobile_number': self.parent_mobile_number,
-            'parent_landline': self.parent_landline,
             'parent_email': self.parent_email,
-            'old_school_name': self.old_school_name,
-            'old_school_grade': self.old_school_grade,
-            'old_school_joined': self.old_school_joined,
-            'old_school_left': self.old_school_left,
-            'datetime': self.datetime,
-            'active': self.active,
-            'grade': self.grade,
-            'join_date': self.join_date,
-            'blood_group': self.blood_group,
-            'nationality': self.nationality,
             'student_email': self.student_email
         }
 
@@ -378,6 +361,7 @@ class Paper_creation(db.Model):
     status = db.Column(db.Boolean, default=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     que_fk = db.relationship('Questions', uselist=False, backref="paper_creation")
+    exam_fk = db.relationship('Exambooking', uselist=False, backref="paper_creation")
 
     def __repr__(self):
         return '<paper_id {}>'.format(self.paper_id)
@@ -450,23 +434,25 @@ class Exambooking(db.Model):
     exam_date = db.Column(db.Date, nullable=False)
     start_time = db.Column(db.Time, nullable=False)
     end_time = db.Column(db.Time, nullable=False)
+    status = db.Column(db.String(10),  nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    paper_id = db.Column(db.Integer, db.ForeignKey('paper_creation.paper_id'), nullable=False)
     subfk = db.relationship('Examresults', uselist=False, backref="exambooking")
 
-    # subfkk = db.relationship('Examresults', uselist=False, backref="Exam_booking")
 
     def __repr__(self):
         return '<id {}>'.format(self.id)
 
     def to_json(self):
         return {
-
             'id': self.id,
             'exam_id': self.exam_id,
             'student_id': self.student_id,
             'subject_id': self.subject_id,
             'exam_date': self.exam_date,
-            'user_id': self.user_id
+            'user_id': self.user_id,
+            'paper_id': self.paper_id,
+            'status': self.status
         }
 
 
