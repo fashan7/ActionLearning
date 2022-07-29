@@ -4,45 +4,58 @@ import datetime
 import time
 from datetime import datetime as dt
 
+from application.frontend.api.UrlClient import UrlClient
+
+
 class StudiesClient:
+    @staticmethod
+    def read_url_one():
+        obj = UrlClient()
+        return obj.set_url_one()
 
     @staticmethod
     def course_reg(form):
+        ob = StudiesClient.read_url_one()
         payload = {
             'course_name': form.cname.data,
             'course_semester': form.semester.data
         }
-        url = ' http://127.0.0.1:5002/api/course/create'
+        url = f'{ob}api/course/create'
         response = requests.request("POST", url=url, data=payload)
         return response
 
     @staticmethod
     def subject_reg(form):
+        ob = StudiesClient.read_url_one()
         payload = {
             'name': form.subject.data,
             'course_id': form.course.data
         }
-        url = ' http://127.0.0.1:5002/api/subject-create'
+        url = f'{ob}api/subject-create'
         response = requests.request("POST", url=url, data=payload)
         return response
 
     @staticmethod
     def get_all_courses():
-        r = requests.get(f'http://127.0.0.1:5002/api/get-courses')
+        ob = StudiesClient.read_url_one()
+        r = requests.get(f'{ob}api/get-courses')
         return r.json()
 
     @staticmethod
     def get_all_subjects():
-        r = requests.get(f'http://127.0.0.1:5002/api/get-subjects')
+        ob = StudiesClient.read_url_one()
+        r = requests.get(f'{ob}api/get-subjects')
         return r.json()
 
     @staticmethod
     def get_nextPaper_code():
-        r = requests.get(f'http://127.0.0.1:5002/api/gen-paper-code')
+        ob = StudiesClient.read_url_one()
+        r = requests.get(f'{ob}api/gen-paper-code')
         return r.json()
 
     @staticmethod
     def post_reg_paper(form):
+        ob = StudiesClient.read_url_one()
         user_id = session['user'].get('id')
         payload = {
             'paper_no': form.papercode.data,
@@ -51,85 +64,98 @@ class StudiesClient:
             'duration': form.duration.data,
             'user_id': user_id
         }
-        url = ' http://127.0.0.1:5002/api/paper-create'
+        url = f'{ob}api/paper-create'
         response = requests.request("POST", url=url, data=payload)
         return response
 
     @staticmethod
     def get_papers():
-        r = requests.get(f'http://127.0.0.1:5002/api/load-paper')
+        ob = StudiesClient.read_url_one()
+        r = requests.get(f'{ob}api/load-paper')
         return r.json()
 
     @staticmethod
     def get_paper_detail(paper_no):
-        r = requests.get(f'http://127.0.0.1:5002/api/get-paper-detail/{paper_no}')
+        ob = StudiesClient.read_url_one()
+        r = requests.get(f'{ob}api/get-paper-detail/{paper_no}')
         return r.json()
 
     @staticmethod
     def get_paper_det(paper_id):
-        r = requests.get(f'http://127.0.0.1:5002/api/get-paper-det/{paper_id}')
+        ob = StudiesClient.read_url_one()
+        r = requests.get(f'{ob}api/get-paper-det/{paper_id}')
         return r.json()
 
     @staticmethod
     def get_paper_det_nocondition(paper_no):
-        r = requests.get(f'http://127.0.0.1:5002/api/get-paper-detail-no/{paper_no}')
+        ob = StudiesClient.read_url_one()
+        r = requests.get(f'{ob}api/get-paper-detail-no/{paper_no}')
         return r.json()
 
     @staticmethod
     def load_questions(paper_id):
-        r = requests.get(f'http://127.0.0.1:5002/api/load-questions/{paper_id}')
+        ob = StudiesClient.read_url_one()
+        r = requests.get(f'{ob}api/load-questions/{paper_id}')
         return r.json()
 
     @staticmethod
     def get_question(paper_id, question_ord):
-        r = requests.get(f'http://127.0.0.1:5002/api/get-question/{paper_id}/{question_ord}')
+        ob = StudiesClient.read_url_one()
+        r = requests.get(f'{ob}api/get-question/{paper_id}/{question_ord}')
         return r.json()
 
     @staticmethod
     def get_answer(question_id):
-        r = requests.get(f'http://127.0.0.1:5002/api/get-answers/{question_id}')
+        ob = StudiesClient.read_url_one()
+        r = requests.get(f'{ob}api/get-answers/{question_id}')
         return r.json()
 
     @staticmethod
     def get_count_answer(paper_id):
-        r = requests.get(f'http://127.0.0.1:5002/api/get-total-question/{paper_id}')
+        ob = StudiesClient.read_url_one()
+        r = requests.get(f'{ob}api/get-total-question/{paper_id}')
         return r.json()
 
     @staticmethod
     def publis_paper(paper_id):
-        r = requests.get(f'http://127.0.0.1:5002/api/paper-publish/{paper_id}')
+        ob = StudiesClient.read_url_one()
+        r = requests.get(f'{ob}api/paper-publish/{paper_id}')
         return r.json()
 
 
     @staticmethod
     def update_question(question, answer, id):
+        ob = StudiesClient.read_url_one()
         payload = {
             'question': question,
             'answer': answer,
             'id': id
         }
-        url = 'http://127.0.0.1:5002/api/update-question'
+        url = f'{ob}api/update-question'
         response = requests.request("POST", url=url, data=payload)
         return response
 
     @staticmethod
     def delete_answer(question_id):
-        r = requests.get(f'http://127.0.0.1:5002/api/delete-answers/{question_id}')
+        ob = StudiesClient.read_url_one()
+        r = requests.get(f'{ob}api/delete-answers/{question_id}')
         return r.json()
 
     @staticmethod
     def insert_answer(question, answer, answer_order):
+        ob = StudiesClient.read_url_one()
         payload = {
             'question_id': question,
             'answer': answer,
             'answer_order': answer_order
         }
-        url = 'http://127.0.0.1:5002/api/answer/create'
+        url = f'{ob}api/answer/create'
         response = requests.request("POST", url=url, data=payload)
         return response
 
     @staticmethod
     def insert_question(paper_id, question, question_order,points,correct_ans):
+        ob = StudiesClient.read_url_one()
         payload = {
             'paper_id': paper_id,
             'question': question,
@@ -137,22 +163,25 @@ class StudiesClient:
             'points': points,
             'correct_ans': correct_ans,
         }
-        url = 'http://127.0.0.1:5002/api/question/create'
+        url = f'{ob}api/question/create'
         response = requests.request("POST", url=url, data=payload)
         return response
 
     @staticmethod
     def load_finished_papers():
-        r = requests.get("http://127.0.0.1:5002/api/load-finished-paper")
+        ob = StudiesClient.read_url_one()
+        r = requests.get(f'{ob}api/load-finished-paper')
         return r.json()
 
     @staticmethod
     def get_exam_id():
-        r = requests.get("http://127.0.0.1:5002/api/get-exam-booking")
+        ob = StudiesClient.read_url_one()
+        r = requests.get(f"{ob}api/get-exam-booking")
         return r.json()
 
     @staticmethod
     def book_exam(form):
+        ob = StudiesClient.read_url_one()
         time_ = form.examtime.data
         time_ = time_+":00"
         getsecond = form.getsecond.data
@@ -183,6 +212,6 @@ class StudiesClient:
             'user_id': form.user_id.data,
         }
 
-        url = 'http://127.0.0.1:5002/api/exam-bookin'
+        url = f'{ob}api/exam-bookin'
         response = requests.request("POST", url=url, data=payload)
         return response
