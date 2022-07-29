@@ -1,33 +1,44 @@
 import requests
 from flask import session, request
 
+from application.frontend.api.UrlClient import UrlClient
+
+
 class StaffClient:
+    @staticmethod
+    def read_url_one():
+        obj = UrlClient()
+        return obj.set_url_one()
 
     @staticmethod
     def department_reg(form):
+        ob = StaffClient.read_url_one()
         payload = {
             'name': form.dname.data
         }
-        url = ' http://127.0.0.1:5002/api/department/create'
+        url = f'{ob}api/department/create'
         response = requests.request("POST", url=url, data=payload)
         return response
 
     @staticmethod
     def get_departments():
-        url = "http://127.0.0.1:5002/api/department"
+        ob = StaffClient.read_url_one()
+        url = f"{ob}api/department"
         response = requests.request(method="GET", url=url)
         branch = response.json()
         return branch
 
     @staticmethod
     def get_staff_latest_code():
-        url = "http://127.0.0.1:5002/api/gen-staff-code"
+        ob = StaffClient.read_url_one()
+        url = f"{ob}api/gen-staff-code"
         response = requests.request(method="GET", url=url)
         res = response.json()
         return res
 
     @staticmethod
     def post_staff_reg(form):
+        ob = StaffClient.read_url_one()
         payload = {
             'staffcode': form.staffcode.data,
             'firstname': form.firstname.data,
@@ -47,7 +58,7 @@ class StaffClient:
             'email': form.email.data,
             'mobile': form.phone.data,
         }
-        url = 'http://127.0.0.1:5002/api/staff/create'
+        url = f'{ob}api/staff/create'
         response = requests.request("POST", url=url, data=payload)
 
         return response

@@ -1,16 +1,24 @@
 import requests
 from flask import session, request
 
+from application.frontend.api.UrlClient import UrlClient
+
 
 class UserClient:
     @staticmethod
+    def read_url_one():
+        obj = UrlClient()
+        return obj.set_url_one()
+
+    @staticmethod
     def post_login(form):
+        ob = UserClient.read_url_one()
         api_key = False
         payload = {
             'username': form.username.data,
             'password': form.password.data
         }
-        url = 'http://127.0.0.1:5002/api/user/login'
+        url = f'{ob}api/user/login'
         response = requests.request("POST", url=url, data=payload)
         if response:
             d = response.json()
@@ -20,30 +28,34 @@ class UserClient:
 
     @staticmethod
     def get_user():
+        ob = UserClient.read_url_one()
         headers = {
             'Authorization': 'Basic ' + session['user_api_key']
         }
-        url = 'http://127.0.0.1:5002/api/user'
+        url = f'{ob}api/user'
         response = requests.request(method="GET", url=url, headers=headers)
         user = response.json()
         return user
 
     @staticmethod
     def get_branches():
-        url = "http://127.0.0.1:5002/api/getall-branch"
+        ob = UserClient.read_url_one()
+        url = f"{ob}api/getall-branch"
         response = requests.request(method="GET", url=url)
         branch = response.json()
         return branch.get('results')
 
     @staticmethod
     def get_roles():
-        url = "http://127.0.0.1:5002/api/user-roles"
+        ob = UserClient.read_url_one()
+        url = f"{ob}api/user-roles"
         response = requests.request(method="GET", url=url)
         roles = response.json()
         return roles.get('data')
 
     @staticmethod
     def post_user_reg(form):
+        ob = UserClient.read_url_one()
         payload = {
             'first_name': form.firstname.data,
             'last_name': form.lastname.data,
@@ -59,62 +71,68 @@ class UserClient:
             'city': form.city.data,
             'country': form.country.data
         }
-        url = 'http://127.0.0.1:5002/api/user/create'
+        url = f'{ob}api/user/create'
         response = requests.request("POST", url=url, data=payload)
 
         return response
         
     @staticmethod
     def post_branch_reg(form):
+        ob = UserClient.read_url_one()
         pay_load = {
             'name': form.bname.data
         }
-        url = 'http://127.0.0.1:5002/api/branch/create'
+        url = f'{ob}api/branch/create'
         response = requests.request('POST', url=url, data=pay_load)
         return response
         
     @staticmethod
     def roles(form):
+        ob = UserClient.read_url_one()
         payload = {
             'name': form.rolename.data
         }
-        url = 'http://127.0.0.1:5002/api/user-roles/create'
+        url = f'{ob}api/user-roles/create'
         response = requests.request("POST", url=url, data=payload)
 
         return response
 
     @staticmethod
     def get_all_users():
-        url = "http://127.0.0.1:5002/api/users"
+        ob = UserClient.read_url_one()
+        url = f"{ob}api/users"
         response = requests.request(method="GET", url=url)
         users = response.json()
         return users
 
     @staticmethod
     def get_all_users_withtypes():
-        url = "http://127.0.0.1:5002/api/users-with-usert"
+        ob = UserClient.read_url_one()
+        url = f"{ob}api/users-with-usert"
         response = requests.request(method="GET", url=url)
         users = response.json()
         return users
 
     @staticmethod
     def recommendation(form):
+        ob = UserClient.read_url_one()
         payload = {
             'recommendation': form.recommendation.data
         }
 
-        url = ' http://127.0.0.1:5002/api/student-recommendation/recommendation'
+        url = f'{ob}api/student-recommendation/recommendation'
         response = requests.request("POST", url=url, data=payload)
 
         return response
 
     @staticmethod
     def feedback(form):
+        ob = UserClient.read_url_one()
         payload = {
             'feedback': form.feedback.data
         }
 
-        url = ' http://127.0.0.1:5002/api/student-recommendation/feedback'
+        url = f'{ob}api/student-recommendation/feedback'
         response = requests.request("POST", url=url, data=payload)
 
         return response
