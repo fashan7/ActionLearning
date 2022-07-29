@@ -81,3 +81,37 @@ class RecommendationForm(FlaskForm):
 class FeedbackForm(FlaskForm):
     feedback = StringField('feedback', validators=[DataRequired()])
     submit = SubmitField('submitReg')
+
+
+class StudentForm(FlaskForm):
+    firstname = StringField('firstname', validators=[DataRequired()])
+    lastname = StringField('lastname', validators=[DataRequired()])
+    rollnumber = StringField('rollnumber', validators=[DataRequired()])
+    email = StringField('email', validators=[DataRequired()])
+    phone = StringField('phone', validators=[DataRequired()])
+    gender = StringField('gender', validators=[DataRequired()])
+    dob = StringField('dob', validators=[DataRequired()])
+    username = StringField('username', validators=[DataRequired()])
+    password = StringField('password', validators=[DataRequired()])
+    roles = StringField('roles', validators=[DataRequired()])
+    branch = StringField('branch', validators=[DataRequired()])
+    parentname = StringField('parentname', validators=[DataRequired()])
+    pemail = StringField('pemail', validators=[DataRequired()])
+    address1 = StringField('address1', validators=[DataRequired()])
+    address2 = StringField('address2', validators=[DataRequired()])
+    address3 = StringField('address3', validators=[DataRequired()])
+    postalcode = StringField('postalcode', validators=[DataRequired()])
+    city = StringField('city', validators=[DataRequired()])
+    country = StringField('country', validators=[DataRequired()])
+    submit = SubmitField('submitReg')
+
+class BookingForm(FlaskForm):
+    SearchStudent = StringField('SearchStudent', validators=[DataRequired()])
+    studentid = StringField('studentid', validators=[DataRequired()])
+    subject_id = StringField('subject_id', validators=[DataRequired()])
+    paperno = StringField('paperno', validators=[DataRequired()])
+    getsecond = StringField('getsecond', validators=[DataRequired()])
+    examdate = StringField('examdate', validators=[DataRequired()])
+    examtime = StringField('examtime', validators=[DataRequired()])
+    user_id = StringField('user_id', validators=[DataRequired()])
+    submit = SubmitField('submitReg')

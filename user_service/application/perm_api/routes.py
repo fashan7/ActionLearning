@@ -2,9 +2,10 @@ from . import perm_api_blueprint
 from .. import db, login_manager
 from ..models import Roles, User, Pageallocation, Userpriviledge, Branch, Useraddress, Staffstructure, Staff, \
     Studentregistration, Studentattendance, Studentfee, Paper_creation, Questions, Answers, Examresults, Exambooking, \
-    Course, Subjects, Recommendation ,Feedback,MultinomialNB,NLP
+    Course, Subjects, Recommendation, Feedback, MultinomialNB, NLP
 from flask import make_response, request, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
+from sqlalchemy import func
 
 from passlib.hash import sha256_crypt
 from collections import defaultdict
@@ -58,6 +59,15 @@ def get_users():
     return response
 
 
+@perm_api_blueprint.route('/api/users-with-usert', methods=['GET'])
+def get_users_with_types():
+    data = list()
+    for row in User.query.join(Roles, Roles.id == User.role_id).with_entities(User.id, User.username, Roles.name):
+        data.append({'id': row[0], 'username': row[1], 'rolename': row[2]})
+    response = jsonify(data)
+    return response
+
+
 def set_privilege(userid):
     pages = Pageallocation.query.all()
 
@@ -68,6 +78,21 @@ def set_privilege(userid):
 
         item.user_id = userid
         item.pageallocation_id = page_id
+        db.session.add(item)
+        db.session.commit()
+
+
+def set_privilege_others(userid):
+    pages = Pageallocation.query.all()
+
+    for row in pages:
+        item = Userpriviledge()
+        json_data = row.to_json()
+        page_id = json_data.get('id')
+
+        item.user_id = userid
+        item.pageallocation_id = page_id
+        item.status = False
         db.session.add(item)
         db.session.commit()
 
@@ -467,7 +492,7 @@ def staff_registration():
     response = jsonify({'message': 'User added', 'result': result})
 
     # When User is created, Priviledges are set
-    set_privilege(result.get('id'))
+    set_privilege_others(result.get('id'))
     return response
 
 
@@ -529,66 +554,6 @@ def gen_staff_code():
     else:
         code = '0001'
         return jsonify({'code': code})
-
-
-@perm_api_blueprint.route('/api/student/registration/', methods=['POST'])
-def Student_registration():
-    name = request.form['name']
-    code = request.form['code']
-    roll_number = request.form['roll_number']
-    student_address = request.form['student_address']
-    gender = request.form['gender']
-    date_of_birth = request.form['date_of_birth']
-    parent_name = request.form['parent_name']
-    parent_address = request.form['parent_address']
-    parent_mobile_number = request.form['parent_mobile_number']
-    parent_landline = request.form['parent_landline']
-    parent_email = request.form['parent_email']
-    old_school_name = request.form['old_school_name']
-    old_school_grade = request.form['old_school_grade']
-    old_school_joined = request.form['old_school_joined']
-    old_school_left = request.form['old_school_left']
-    datetime = request.form['datetime']
-    active = request.form['active']
-    grade = request.form['grade']
-    join_date = request.form['join_date']
-    blood_group = request.form['blood_group']
-    nationality = request.form['nationality']
-    student_email = request.form['student_email']
-
-    item_add = Studentregistration()
-
-    item_add.name = name
-    item_add.code = code
-    item_add.roll_number = roll_number
-    item_add.student_address = student_address
-    item_add.gender = gender
-    item_add.date_of_birth = date_of_birth
-    item_add.parent_name = parent_name
-    item_add.parent_address = parent_address
-    item_add.parent_mobile_number = parent_mobile_number
-    item_add.parent_landline = parent_landline
-    item_add.parent_email = parent_email
-    item_add.old_school_name = old_school_name
-    item_add.old_school_grade = old_school_grade
-    item_add.old_school_joined = old_school_joined
-    item_add.old_school_left = old_school_left
-    item_add.datetime = datetime
-    if 'True' or 'true' in active:
-        item_add.active = True
-    else:
-        item_add.active = False
-    item_add.grade = grade
-    item_add.join_date = join_date
-    item_add.blood_group = blood_group
-    item_add.nationality = nationality
-    item_add.student_email = student_email
-    # item_add.studentattendance =studentattendance
-    db.session.add(item_add)
-    db.session.commit()
-
-    result = item_add.to_json()
-    return result
 
 
 @perm_api_blueprint.route('/api/get-student/<id>', methods=['GET'])
@@ -1174,7 +1139,7 @@ def paper_update(id):
 
         item.paper_id = paper_id
         item.subject_id = subject_id
-        item.duration = duration
+        item.duration = duration*60
         item.no_of_questions = no_of_questions
         item.paper_no = paper_no
         # item.status=status
@@ -1447,11 +1412,36 @@ def get_paper_detail(paper_no):
         Paper_creation.paper_no == paper_no, Paper_creation.status == True).with_entities(Subjects.name,
                                                                                           Course.course_name,
                                                                                           Paper_creation.no_of_questions,
-                                                                                          Paper_creation.paper_id)
+                                                                                          Paper_creation.paper_id,
+                                                                                          Paper_creation.duration,
+                                                                                          Paper_creation.subject_id)
     if item is not None:
         items = dict()
         for row in item:
-            items.update({'subject_name': row[0], 'course_name': row[1], 'noofquestion': row[2], 'paperid': row[3]})
+            items.update({'subject_name': row[0], 'course_name': row[1], 'noofquestion': row[2], 'paperid': row[3],
+                          'duration': row[4], 'subject_id':row[5]})
+        response = jsonify(items), 200
+        return response
+
+    response = jsonify({'message': 'Cannot find result'}), 400
+    return response
+
+
+@perm_api_blueprint.route('/api/get-paper-detail-no/<paper_id>', methods=['GET'])
+def get_paper_detail_nocondition(paper_id):
+    item = Paper_creation.query.join(Subjects, Subjects.id == Paper_creation.subject_id).join(Course,
+                                                                                              Course.id == Subjects.course_id).filter(
+        Paper_creation.paper_id == paper_id).with_entities(Subjects.name,
+                                                                                          Course.course_name,
+                                                                                          Paper_creation.no_of_questions,
+                                                                                          Paper_creation.paper_id,
+                                                                                          Paper_creation.duration,
+                                                                                          Paper_creation.subject_id)
+    if item is not None:
+        items = dict()
+        for row in item:
+            items.update({'subject_name': row[0], 'course_name': row[1], 'noofquestion': row[2], 'paperid': row[3],
+                          'duration': row[4], 'subject_id':row[5]})
         response = jsonify(items), 200
         return response
 
@@ -1566,11 +1556,9 @@ def question_create():
 
 @perm_api_blueprint.route('/api/student-recommendation/recommendation', methods=['POST'])
 def recommendation():
-
     recommendation = request.form['recommendation']
 
     item = Recommendation()
-
 
     tags_In_Articles = {'AIS': [
 
@@ -1582,9 +1570,9 @@ def recommendation():
 
         'SE': [
 
-            ['API', 'WEB', 'SOFTWARE','DEVOPS'],
+            ['API', 'WEB', 'SOFTWARE', 'DEVOPS'],
 
-            ['API', 'DEVELOPEMENT', 'WEB' , 'UNIX']
+            ['API', 'DEVELOPEMENT', 'WEB', 'UNIX']
 
         ],
 
@@ -1637,12 +1625,12 @@ def recommendation():
             opSub = key
             maxVal = OPPrediction[key]
 
-    #OPPrediction = {k: v for k, v in sorted(OPPrediction.items(), key=lambda item: item[1])}
+    # OPPrediction = {k: v for k, v in sorted(OPPrediction.items(), key=lambda item: item[1])}
 
-    #dict(sorted(OPPrediction.items(), key=lambda item: item[1]))
-    #OPPrediction = sorted(OPPrediction.items(), key=lambda x: x[1])
+    # dict(sorted(OPPrediction.items(), key=lambda item: item[1]))
+    # OPPrediction = sorted(OPPrediction.items(), key=lambda x: x[1])
 
-    #response = jsonify({'message': list(OPPrediction.keys())[0]})
+    # response = jsonify({'message': list(OPPrediction.keys())[0]})
 
     item.recommendation = recommendation
     item.output = opSub
@@ -1654,12 +1642,11 @@ def recommendation():
     return response
 
 
-
 @perm_api_blueprint.route('/api/student-recommendation/feedback', methods=['POST'])
 def feedback():
-
     feedback = request.form['feedback']
-    dataset = pd.read_excel("/Users/fashaan/Documents/Programming/ActionLearning/user_service/resource/DataSet_NLP.xlsx")
+    dataset = pd.read_excel(
+        "/Users/fashaan/Documents/Programming/ActionLearning/user_service/resource/DataSet_NLP.xlsx")
     try:
         _create_unverified_https_context = ssl._create_unverified_context
     except AttributeError:
@@ -1675,7 +1662,7 @@ def feedback():
         corpus.append(NLP.commonFunc(dataset['Experience'][i]))
     print(corpus)
     ##############################################################################
-    #testing = 'Teachers were good'
+    # testing = 'Teachers were good'
     stopwordsRemoved = NLP.commonFunc(feedback)
     corpus2.append(stopwordsRemoved)
     ##############################################################################
@@ -1701,7 +1688,7 @@ def feedback():
 
 @perm_api_blueprint.route('/api/student-recommendation/get-report/<op>', methods=['GET'])
 def getall_report(op):
-    item = Feedback.query.filter(Feedback.output == op ).all()
+    item = Feedback.query.filter(Feedback.output == op).all()
     if item is not None:
         items = list()
         for row in item:
@@ -1710,3 +1697,177 @@ def getall_report(op):
     else:
         response = jsonify({'message': 'Cannot find Sub Section'}), 404
     return response
+
+
+@perm_api_blueprint.route('/api/student/create', methods=['POST'])
+def student_registration():
+    firstname = request.form['firstname']
+    lastname = request.form['lastname']
+    roll_number = request.form['roll_number']
+    gender = request.form['gender']
+    date_of_birth = request.form['date_of_birth']
+    parent_name = request.form['parent_name']
+    parent_mobile_number = request.form['parent_mobile_number']
+    parent_email = request.form['parent_email']
+    student_email = request.form['student_email']
+    branch = request.form['branch']
+
+    username = request.form['username']
+    password = sha256_crypt.hash((str(request.form['password'])))
+
+    address1 = request.form['address1']
+    address2 = request.form['address2']
+    address3 = request.form['address3']
+    postalcode = request.form['postalcode']
+    city = request.form['city']
+    country = request.form['country']
+
+    item_add = Studentregistration()
+
+    item_add.studentusername = username
+    item_add.roll_number = roll_number
+    item_add.gender = gender
+    item_add.date_of_birth = date_of_birth
+    item_add.parent_name = parent_name
+    item_add.parent_mobile_number = parent_mobile_number
+    item_add.parent_email = parent_email
+    item_add.student_email = student_email
+    db.session.add(item_add)
+    db.session.commit()
+
+    # User Address
+    item_addr = Useraddress()
+    item_addr.address1 = address1
+    item_addr.address2 = address2
+    item_addr.address3 = address3
+    item_addr.city = city
+    item_addr.country = country
+    item_addr.postal_code = postalcode
+    db.session.add(item_addr)
+    db.session.commit()
+
+    result = item_addr.to_json()
+    insert_addr_id = result.get('id')
+
+    # UserForm
+    item_user = User()
+    item_user.username = username
+    item_user.email = student_email
+    item_user.first_name = firstname
+    item_user.last_name = lastname
+    item_user.password = password
+    item_user.address_id = insert_addr_id
+    item_user.role_id = 3
+    item_user.branch_id = branch
+
+    db.session.add(item_user)
+    db.session.commit()
+    result = item_user.to_json()
+    response = jsonify({'message': 'User added', 'result': result})
+
+    # When User is created, Priviledges are set
+    set_privilege_others(result.get('id'))
+
+    return result
+
+
+@perm_api_blueprint.route('/api/gen-role-number', methods=['GET'])
+def gen_student_number():
+    item = Studentregistration.query.order_by(Studentregistration.id.desc()).first()
+    if item is not None:
+        data = item.to_json()
+        code = 'STD000' + str(data.get('id') + 1)
+        return jsonify({'code': code})
+    else:
+        code = 'STD0001'
+        return jsonify({'code': code})
+
+
+@perm_api_blueprint.route('/api/search-student/<anything>', methods=['GET'])
+def search_student_by_any(anything):
+    item = Studentregistration.query.join(User, User.username == Studentregistration.studentusername).filter(
+        (User.first_name.match("%{0}%".format(anything))) | (User.last_name.match("%{0}%".format(anything))) | (
+            Studentregistration.roll_number.match("%{0}%".format(anything)))).with_entities(
+        Studentregistration.roll_number, User.first_name, User.last_name, Studentregistration.id)
+    data = list()
+    if item is not None:
+        for row in item:
+            data.append({'name': row[1], 'role_no': row[0], 'std_id': row[3]})
+    return jsonify(data)
+
+
+@perm_api_blueprint.route('/api/load-finished-paper', methods=['GET'])
+def load_paper_finished():
+    item = Paper_creation.query.filter(Paper_creation.status == False).all()
+    if item is not None:
+        data = list()
+        for row in item:
+            data.append(row.to_json())
+        return jsonify({'data': data})
+    else:
+        return jsonify({'message': 'Cannot find result'}), 404
+
+
+@perm_api_blueprint.route('/api/get-paper-det/<paper_id>', methods=['GET'])
+def get_paper_det(paper_id):
+    item = Paper_creation.query.join(Subjects, Subjects.id == Paper_creation.subject_id).join(Course,
+                                                                                              Course.id == Subjects.course_id).filter(
+        Paper_creation.paper_id == paper_id).with_entities(Subjects.name,
+                                                           Course.course_name,
+                                                           Paper_creation.no_of_questions,
+                                                           Paper_creation.paper_id, Paper_creation.duration)
+    if item is not None:
+        items = dict()
+        for row in item:
+            items.update({'subject_name': row[0], 'course_name': row[1], 'noofquestion': row[2], 'paperid': row[3],
+                          'duration': row[4]})
+        response = jsonify(items), 200
+        return response
+
+    response = jsonify({'message': 'Cannot find result'}), 400
+    return response
+
+
+@perm_api_blueprint.route('/api/get-exam-booking', methods=['GET'])
+def get_exam_booking():
+    item = Exambooking.query.order_by(Exambooking.id.desc()).first()
+    if item is not None:
+        data = item.to_json()
+        code = 'E000' + str(data.get('id') + 1)
+        return jsonify({'code': code})
+    else:
+        code = 'E0001'
+        return jsonify({'code': code})
+
+
+@perm_api_blueprint.route('/api/exam-bookin', methods=['POST'])
+def book_exams():
+    student_id = request.form['student_id']
+    subject_id = request.form['subject_id']
+    exam_id = request.form['exam_id']
+    exam_date = request.form['exam_date']
+    paper_id = request.form['paper_id']
+    start_time = request.form['start_time']
+    end_time = request.form['end_time']
+    user_id = request.form['user_id']
+
+
+    item = Exambooking()
+    item.student_id = student_id
+    item.subject_id = subject_id
+    item.exam_id = exam_id
+    item.exam_date = exam_date
+    item.paper_id = paper_id
+    item.start_time = start_time
+    item.end_time = end_time
+    item.user_id = user_id
+    item.status = "booked"
+
+    db.session.add(item)
+    db.session.commit()
+
+    result = item.to_json()
+    response = jsonify({'message': 'Exam Booked', 'result': result})
+    return response
+
+

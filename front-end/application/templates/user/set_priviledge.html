@@ -56,7 +56,7 @@
                                 <select id="users" name="users" class="form-select">
                                     <option value="" selected>-- Please Select --</option>
                                     {% for key in users %}
-                                        <option value="{{ key.id }}">{{ key.username }}</option>
+                                        <option value="{{ key.id }}">{{ key.rolename }} - {{ key.username }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
